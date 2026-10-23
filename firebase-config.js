@@ -3,7 +3,7 @@
  * Datos transcritos de la captura de Firebase proporcionada por los novios.
  */
 window.FIREBASE_CONFIG = {
-  apiKey: 'AIzaSyCKTnNH-N_87HGM-r2S04_UqCewQveHpQ',
+  apiKey: 'AIzaSyCKTnlNH-N_87HGM-r2S04_UqCewQveHpQ',
   authDomain: 'boda-gerson-anayeli-2026.firebaseapp.com',
   projectId: 'boda-gerson-anayeli-2026',
   storageBucket: 'boda-gerson-anayeli-2026.firebasestorage.app',

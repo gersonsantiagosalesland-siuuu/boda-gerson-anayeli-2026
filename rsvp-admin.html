@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>G&A | Panel privado de confirmaciones</title>
+  <style>
+    :root{font-family:Arial,Helvetica,sans-serif;color:#172741;background:#f7f5ef}
+    *{box-sizing:border-box}body{margin:0}header{background:#172741;color:#fff;padding:28px 18px;text-align:center}
+    header small{color:#d5b879;letter-spacing:.18em}h1{font-family:Georgia,serif;font-weight:400;margin:8px 0}
+    main{max-width:1020px;margin:auto;padding:24px 16px 70px}section{background:#fff;border:1px solid #e0d6c0;padding:22px;margin-bottom:16px}
+    button{background:#172741;color:#fff;border:0;padding:11px 17px;cursor:pointer;margin:4px;border-radius:4px}
+    button:disabled{opacity:.55;cursor:default}.light{background:#eee8da;color:#172741}.danger{background:#9b3b3b}
+    .muted{color:#5e6879;font-size:14px}.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    input{padding:12px;border:1px solid #d5c9b3;max-width:100%}table{border-collapse:collapse;width:100%;font-size:13px}
+    td,th{border-bottom:1px solid #e8e2d8;text-align:left;padding:10px 8px}th{background:#f3eee3}
+    .scroll{overflow-x:auto}#message{white-space:pre-wrap}.metrics{display:flex;gap:12px;flex-wrap:wrap}
+    .metric{background:#f7f5ef;border:1px solid #e3d9c7;padding:15px;min-width:160px;flex:1}
+    .metric strong{display:block;font-size:29px;font-family:Georgia,serif}#private[hidden],#login[hidden]{display:none}
+    a{color:#172741}code{word-break:break-all}
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="./firebase-config.js"></script>
+</head>
+<body>
+  <header><small>GERSON & ANAYELI</small><h1>Confirmaciones de asistencia</h1><p>Panel privado · Boda del 21 de noviembre de 2026</p></header>
+  <main>
+    <section id="login">
+      <h2>Acceso de los novios</h2>
+      <p class="muted">Inicia sesión con la cuenta de Google autorizada en Firebase.</p>
+      <button id="signIn">Entrar con Google</button>
+    </section>
+    <section id="private" hidden>
+      <div class="row"><h2 style="flex:1">Invitaciones por familia</h2><button class="light" id="refresh">Actualizar</button><button class="light" id="signOut">Cerrar sesión</button></div>
+      <div class="metrics" id="metrics"></div>
+      <p class="muted">Solo se mostrarán las familias autorizadas. Fecha límite para invitados: 14 de noviembre de 2026.</p>
+      <div class="scroll"><table><thead><tr><th>Familia</th><th>Cupos</th><th>Respuesta</th><th>Confirmados</th><th>Enlace</th><th>Pruebas</th></tr></thead><tbody id="rows"></tbody></table></div>
+    </section>
+    <section id="importSection" hidden>
+      <h2>Activar los 20 enlaces privados</h2>
+      <p class="muted">Selecciona el archivo privado <strong>INVITADOS_PRIVADOS_20_FAMILIAS_GERSON_ANAYELI.json</strong> de tu computadora. No lo subas a GitHub ni a Netlify. La importación no modifica respuestas ya existentes.</p>
+      <div class="row"><input id="file" type="file" accept=".json,application/json"><button id="import" disabled>Crear invitaciones faltantes</button></div>
+    </section>
+    <section><p id="message" role="status" class="muted">Conéctate para consultar las confirmaciones.</p></section>
+  </main>
+<script>
+(function(){
+ 'use strict';
+ const $=id=>document.getElementById(id);
+ const BASE='https://elaborate-pothos-d36d27.netlify.app/#i=';
+ let db=null, allowed=false, selected=null;
+ function msg(s){$('message').textContent=s;}
+ function metric(title,value){const box=document.createElement('div');box.className='metric';const strong=document.createElement('strong');strong.textContent=String(value);const label=document.createElement('span');label.textContent=title;box.append(strong,label);return box;}
+ async function refresh(){
+   if(!allowed)return;
+   const docs=await db.collection('invitaciones').get();
+   const data=docs.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.family.localeCompare(b.family,'es'));
+   const yes=data.filter(x=>x.status==='yes'),no=data.filter(x=>x.status==='no');
+   const quota=data.reduce((n,x)=>n+x.quota,0),confirmed=yes.reduce((n,x)=>n+x.confirmedCount,0);
+   $('metrics').replaceChildren(metric('Familias registradas',data.length),metric('Cupos asignados',quota),metric('Personas confirmadas',confirmed),metric('Total con novios',confirmed+2),metric('Familias pendientes',data.length-yes.length-no.length),metric('Familias que no asistirán',no.length));
+   $('rows').replaceChildren();
+   for(const d of data){
+     const tr=document.createElement('tr');
+     for(const value of [d.family,d.quota,d.status==='yes'?'Sí':d.status==='no'?'No':'Pendiente',d.confirmedCount]){
+       const td=document.createElement('td');td.textContent=String(value);tr.appendChild(td);
+     }
+     const tdLink=document.createElement('td');const copy=document.createElement('button');copy.textContent='Copiar enlace';copy.className='light';copy.addEventListener('click',async()=>{
+       try{await navigator.clipboard.writeText(BASE+d.id);msg('Enlace copiado para '+d.family+'. Compártelo solo con esa familia.');}
+       catch(e){msg('Copia este enlace: '+BASE+d.id);}
+     });tdLink.appendChild(copy);tr.appendChild(tdLink);
+     const tdReset=document.createElement('td');const reset=document.createElement('button');reset.textContent='Restablecer';reset.className='light';reset.disabled=d.status==='pending';reset.addEventListener('click',async()=>{
+       if(!confirm('¿Restablecer la respuesta de '+d.family+' a pendiente? Úsalo solo para corregir pruebas o a solicitud de la familia.'))return;
+       await db.collection('invitaciones').doc(d.id).update({status:'pending',confirmedCount:0,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
+       msg('Respuesta restablecida.');await refresh();
+     });tdReset.appendChild(reset);tr.appendChild(tdReset);
+     $('rows').appendChild(tr);
+   }
+   msg('Datos actualizados. Recuerda que cada enlace privado permite modificar la respuesta de esa familia.');
+ }
+ if(!window.FIREBASE_CONFIG||!window.firebase){msg('No se pudo cargar Firebase.');return;}
+ firebase.initializeApp(window.FIREBASE_CONFIG);
+ db=firebase.firestore();
+ $('signIn').addEventListener('click',async()=>{
+   try{await firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider());}
+   catch(e){msg('No se pudo iniciar sesión. Comprueba que el dominio de GitHub Pages esté autorizado en Firebase.');}
+ });
+ $('signOut').addEventListener('click',()=>firebase.auth().signOut());
+ firebase.auth().onAuthStateChanged(async user=>{
+   allowed=false;$('private').hidden=true;$('importSection').hidden=true;$('login').hidden=!!user;
+   if(!user){msg('Conéctate con la cuenta autorizada.');return;}
+   try{
+     const admin=await db.collection('admins').doc(user.uid).get();
+     if(!admin.exists||admin.data().enabled!==true){msg('Esta cuenta no está autorizada como administradora.');$('login').hidden=false;return;}
+     allowed=true;$('private').hidden=false;$('importSection').hidden=false;await refresh();
+   }catch(e){msg('No se pudo comprobar el acceso. Revisa las reglas de Firestore.');}
+ });
+ $('refresh').addEventListener('click',()=>refresh().catch(()=>msg('Error al actualizar los datos.')));
+ $('file').addEventListener('change',async e=>{
+   selected=null;$('import').disabled=true;
+   const file=e.target.files[0];if(!file)return;
+   try{
+     const parsed=JSON.parse(await file.text());const arr=parsed.families;
+     if(!Array.isArray(arr)||arr.length!==20)throw Error('Deben ser 20 invitaciones');
+     const tokens=new Set();let total=0;
+     for(const d of arr){
+       if(typeof d.family!=='string'||d.family.length<1||d.family.length>100||!Number.isInteger(d.quota)||d.quota<1||d.quota>20||typeof d.token!=='string'||!/^[A-Za-z0-9_-]{20,64}$/.test(d.token)||tokens.has(d.token))throw Error('Datos o tokens inválidos');
+       tokens.add(d.token);total+=d.quota;
+     }
+     if(total!==48)throw Error('La suma debe ser 48 cupos');
+     selected=arr;$('import').disabled=false;msg('Archivo verificado: 20 invitaciones y 48 cupos. Listo para activar.');
+   }catch(e){msg('Archivo no válido: '+e.message);}
+ });
+ $('import').addEventListener('click',async()=>{
+   if(!allowed||!selected)return;
+   if(!confirm('¿Crear las invitaciones faltantes en Firebase? No se modificarán las que ya existen.'))return;
+   $('import').disabled=true;
+   try{
+     const snapshot=await db.collection('invitaciones').get();const existing=new Map(snapshot.docs.map(d=>[d.id,d.data()]));
+     const batch=db.batch();let created=0;
+     for(const d of selected){
+       const found=existing.get(d.token);
+       if(found){if(found.family!==d.family||found.quota!==d.quota)throw Error('El enlace de '+d.family+' ya existe con otros datos.');continue;}
+       batch.set(db.collection('invitaciones').doc(d.token),{
+         family:d.family,quota:d.quota,status:'pending',confirmedCount:0,
+         createdAt:firebase.firestore.FieldValue.serverTimestamp(),
+         updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+       });created++;
+     }
+     if(created)await batch.commit();
+     msg('¡Listo! Se crearon '+created+' invitaciones. Ya puedes copiar los enlaces privados.');await refresh();
+   }catch(e){msg('No se pudo importar: '+e.message);}
+   finally{$('import').disabled=!selected;}
+ });
+})();
+</script>
+</body></html>

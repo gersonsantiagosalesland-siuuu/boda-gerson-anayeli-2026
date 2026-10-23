@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#172741">
+  <meta name="description" content="Prototipo independiente de invitación y mesa de regalos de Gerson y Anayeli. 21 de noviembre de 2026.">
+  <title>Gerson & Anayeli | Prueba de mesa de regalos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./firebase-config.js"></script>
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <div id="status-banner" class="status-banner" role="status" aria-live="polite">Cargando la demostración…</div>
+  <header class="topbar">
+    <a class="wordmark" href="#inicio" aria-label="Ir al inicio">G <span>&</span> A</a>
+    <nav aria-label="Navegación de la prueba">
+      <a href="#detalles">El gran día</a>
+      <a href="#regalos">Mesa de regalos</a>
+      <a href="#administracion" id="admin-nav">Panel privado</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero" id="inicio" aria-labelledby="hero-title">
+      <div class="hero-ornament hero-ornament-left" aria-hidden="true">✧</div>
+      <div class="hero-ornament hero-ornament-right" aria-hidden="true">✧</div>
+      <p class="eyebrow light">UNA CELEBRACIÓN ÍNTIMA · VERSIÓN DE PRUEBA</p>
+      <div class="monogram" aria-hidden="true"><span>G</span><i>&</i><span>A</span></div>
+      <h1 id="hero-title">Gerson <em>&</em> Anayeli</h1>
+      <p class="hero-subtitle">El comienzo de nuestra historia para siempre</p>
+      <div class="hero-divider" aria-hidden="true"><span></span>✦<span></span></div>
+      <p class="hero-date">SÁBADO · 21 DE NOVIEMBRE DE 2026</p>
+      <a class="button button-outline-light" href="#regalos">Explorar nuestra mesa de regalos <span aria-hidden="true">↓</span></a>
+    </section>
+
+    <section class="details section-wrap" id="detalles" aria-labelledby="details-title">
+      <p class="eyebrow">NUESTRO GRAN DÍA</p>
+      <h2 id="details-title">Un día para recordar</h2>
+      <p class="section-intro">Compartiremos este momento tan especial con quienes más queremos.</p>
+      <div class="event-grid">
+        <article class="event-card">
+          <div class="event-icon" aria-hidden="true">✦</div>
+          <h3>Ceremonia civil</h3>
+          <p class="event-time">5:00 p. m.</p>
+          <p>Municipalidad de Pachacámac<br>Paraíso 206, Pachacámac</p>
+          <a href="https://maps.app.goo.gl/HknMsPPH9z1Gpaz28" target="_blank" rel="noopener noreferrer">Ver ubicación ↗</a>
+        </article>
+        <article class="event-card">
+          <div class="event-icon" aria-hidden="true">❦</div>
+          <h3>Recepción</h3>
+          <p class="event-time">6:00 p. m.</p>
+          <p>Celebración campestre<br>Pachacámac, Lima</p>
+          <a href="https://maps.app.goo.gl/Nwyo13ne2YGwdi5c6" target="_blank" rel="noopener noreferrer">Ver ubicación ↗</a>
+        </article>
+      </div>
+      <p class="dress-note">Vestimenta formal · Para mayor comodidad, sugerimos zapatos apropiados para césped y una prenda ligera de abrigo para la noche.</p>
+    </section>
+
+    <section class="registry-section" id="regalos" aria-labelledby="registry-title">
+      <div class="section-wrap">
+        <div class="section-heading">
+          <span class="section-icon" aria-hidden="true">✧</span>
+          <p class="eyebrow">CON TODO NUESTRO CARIÑO</p>
+          <h2 id="registry-title">Nuestra mesa de regalos</h2>
+          <p class="section-intro">Tu presencia es nuestro regalo más importante. Si deseas tener un detalle con nosotros, hemos elegido algunas cosas que nos acompañarán en esta nueva etapa.</p>
+        </div>
+
+        <div class="registry-tabs" role="tablist" aria-label="Tipo de regalo">
+          <button class="registry-tab active" type="button" role="tab" id="tab-physical" aria-selected="true" aria-controls="physical-panel" data-tab="physical">Regalos para nuestro hogar</button>
+          <button class="registry-tab" type="button" role="tab" id="tab-contribution" aria-selected="false" aria-controls="contribution-panel" data-tab="contribution">Aporte voluntario</button>
+        </div>
+
+        <div id="physical-panel" role="tabpanel" aria-labelledby="tab-physical">
+          <div class="registry-toolbar">
+            <div class="catalog-info"><span id="available-count">25</span> regalos disponibles <span class="dot-sep">·</span> <span id="reserved-count">0</span> reservados</div>
+            <div class="filter-wrap">
+              <label for="tier-filter">Mostrar</label>
+              <select id="tier-filter">
+                <option value="all">Todos los regalos</option>
+                <option value="favorite">Nuestros 7 favoritos</option>
+                <option value="eco">Económicos</option>
+                <option value="mid">Intermedios</option>
+                <option value="special">Especiales</option>
+                <option value="available">Solo disponibles</option>
+              </select>
+            </div>
+          </div>
+          <div id="gift-grid" class="gift-grid" aria-live="polite"></div>
+          <div id="my-reservations" class="my-reservations" hidden></div>
+        </div>
+
+        <div id="contribution-panel" role="tabpanel" aria-labelledby="tab-contribution" hidden>
+          <div class="contribution-card">
+            <div class="contribution-icon" aria-hidden="true">♡</div>
+            <h3>Un detalle de corazón</h3>
+            <p>Si prefieres contribuir de otra manera, puedes hacerlo de forma completamente voluntaria. No sugerimos ni solicitamos un monto específico.</p>
+            <div class="contribution-options">
+              <div><strong>Yape o Plin</strong><span>Los datos se incorporarán solo cuando Gerson y Anayeli autoricen publicarlos.</span></div>
+              <div><strong>Sobre en la recepción</strong><span>También puedes entregar un sobre durante nuestra celebración.</span></div>
+            </div>
+            <p class="fine-print">En esta prueba no se reciben ni verifican pagos.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="admin-section section-wrap" id="administracion" aria-labelledby="admin-title">
+      <p class="eyebrow">SOLO PARA LOS NOVIOS</p>
+      <h2 id="admin-title">Panel de administración</h2>
+      <p class="section-intro">Aquí podrán ver qué regalos están reservados. Los nombres de quienes los eligieron se mantendrán ocultos hasta después de la boda.</p>
+      <div id="admin-panel" class="admin-panel" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <footer class="footer"><div class="footer-monogram">G <span>&</span> A</div><p>21 · 11 · 2026</p><p class="footer-disclaimer">Prototipo de prueba · No modifica la invitación definitiva</p></footer>
+
+  <dialog id="reserve-dialog" class="modal" aria-labelledby="reserve-title">
+    <form id="reserve-form" class="modal-content">
+      <button type="button" class="modal-close" data-close="reserve-dialog" aria-label="Cerrar">×</button>
+      <p class="eyebrow">RESERVA DE REGALO</p>
+      <h2 id="reserve-title">Un detalle para nosotros</h2>
+      <p id="reserve-gift-name" class="selected-gift"></p>
+      <label for="guest-name">Tu nombre y apellido</label>
+      <input id="guest-name" name="name" autocomplete="name" maxlength="80" minlength="3" required placeholder="Ej. María Rodríguez">
+      <label for="guest-phone">WhatsApp de contacto</label>
+      <input id="guest-phone" name="phone" type="tel" autocomplete="tel" maxlength="20" required placeholder="Ej. 987 654 321" pattern="[+0-9 ()-]{7,20}">
+      <label class="consent"><input id="guest-consent" type="checkbox" required><span>Acepto que mis datos se utilicen únicamente para gestionar este regalo. Solo los novios podrán consultarlos después de la boda.</span></label>
+      <p id="delivery-note" class="delivery-note"></p>
+      <p id="reserve-error" class="form-error" role="alert" hidden></p>
+      <button id="reserve-submit" type="submit" class="button button-primary">Confirmar mi reserva</button>
+      <p class="fine-print">La reserva no implica una compra automática. El invitado adquiere y entrega el regalo por su cuenta.</p>
+    </form>
+  </dialog>
+
+  <dialog id="edit-dialog" class="modal" aria-labelledby="edit-title">
+    <form id="edit-form" class="modal-content">
+      <button type="button" class="modal-close" data-close="edit-dialog" aria-label="Cerrar">×</button>
+      <p class="eyebrow">ADMINISTRACIÓN</p>
+      <h2 id="edit-title">Editar regalo</h2>
+      <label for="edit-name">Nombre del regalo</label>
+      <input id="edit-name" name="name" required maxlength="90">
+      <label for="edit-desc">Descripción y características</label>
+      <textarea id="edit-desc" name="description" rows="4" maxlength="450" required></textarea>
+      <label for="edit-tier">Categoría</label>
+      <select id="edit-tier" name="tier"><option value="eco">Económico</option><option value="mid">Intermedio</option><option value="special">Especial</option></select>
+      <p id="edit-error" class="form-error" role="alert" hidden></p>
+      <button id="edit-submit" type="submit" class="button button-primary">Guardar cambios</button>
+    </form>
+  </dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

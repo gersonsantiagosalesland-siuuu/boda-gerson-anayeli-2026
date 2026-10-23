@@ -13,3 +13,13 @@
 @media(max-width:850px){.gift-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.topbar{padding:0 24px}.hero-ornament{display:none}.section-wrap{padding:64px 22px}}
 @media(max-width:600px){.topbar{height:64px;padding:0 15px}.topbar nav{gap:13px}.topbar nav a{font-size:10px}.topbar nav a:first-child{display:none}.wordmark{font-size:24px}.hero{min-height:490px;padding:58px 16px}.hero h1{font-size:55px}.hero-subtitle{font-size:20px}.hero-date{font-size:10px}.hero .eyebrow{font-size:9px}.event-grid{grid-template-columns:1fr}.gift-grid{grid-template-columns:1fr 1fr;gap:10px}.gift-art{height:110px}.gift-art .emoji{font-size:42px}.gift-card-body{padding:13px}.gift-card h3{font-size:22px}.gift-card p{font-size:11px}.gift-card-foot{flex-direction:column;align-items:stretch}.gift-card-foot .button{width:100%}.registry-toolbar{flex-direction:column;align-items:stretch}.filter-wrap{justify-content:space-between}.filter-wrap select{min-width:0;flex:1}.registry-tabs{margin-top:25px}.registry-tab{font-size:11px;padding:10px 7px}.contribution-options{grid-template-columns:1fr}.admin-panel{padding:15px}.admin-table{min-width:580px}.stat-grid{gap:6px}.stat{padding:10px}.stat strong{font-size:30px}.section-wrap{padding:56px 16px}.my-reservation-row{flex-wrap:wrap}.status-banner{font-size:11px}}
 @media(max-width:380px){.gift-grid{grid-template-columns:1fr}.topbar nav a{font-size:9px}}
+
+/* FOTOGRAFIAS DEL CATALOGO - no afecta Firebase ni los aportes */
+.gift-art{height:186px;overflow:hidden;background:#f6f1e8}
+.gift-art .emoji{position:relative;z-index:0}
+.gift-art .gift-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block;z-index:1;background:#f6f1e8;transition:transform .35s ease}
+.gift-card:hover .gift-photo{transform:scale(1.035)}
+.gift-art .favorite-mark{z-index:3;box-shadow:0 2px 8px #00000015}
+.gift-art .photo-note{position:absolute;bottom:9px;right:9px;z-index:2;background:#fffefaec;color:#645d53;font:500 9px/1.2 'DM Sans',sans-serif;padding:4px 7px;border-radius:4px;letter-spacing:.02em}
+@media(max-width:600px){.gift-art{height:145px}.gift-art .photo-note{font-size:8px;padding:3px 5px;bottom:6px;right:6px}}
+@media(prefers-reduced-motion:reduce){.gift-art .gift-photo{transition:none}.gift-card:hover .gift-photo{transform:none}}

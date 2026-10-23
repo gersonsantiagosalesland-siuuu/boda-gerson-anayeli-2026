@@ -38,6 +38,37 @@ const DEFAULT_GIFTS = [
   {id:'sonido',name:'Equipo de sonido potente',tier:'special',favorite:true,emoji:'🔊',order:25,delivery:'coordinate',description:'Con Bluetooth, buena potencia y calidad de audio. Características por definir.'}
 ];
 
+
+// Fotografias reales de Pexels, usadas como referencias visuales, sin marcas obligatorias.
+// No modifica datos de Firestore: la imagen se asigna localmente por el ID de regalo.
+const GIFT_PHOTO_IDS = Object.freeze({
+  'vasos': 6387830,
+  'utensilios': 17542995,
+  'cubiertos': 7140435,
+  'cuchillos': 16443132,
+  'hermeticos': 8580786,
+  'escurridor': 10397049,
+  'toallas': 4210371,
+  'protector': 9893931,
+  'alfombra-bano': 7546609,
+  'organizador-bano': 33429884,
+  'tazas': 8063827,
+  'botiquin': 5664736,
+  'vajilla': 6611480,
+  'cama': 7303691,
+  'ollas': 30981356,
+  'sartenes': 2868977,
+  'almohadas': 3755585,
+  'veladores': 18145480,
+  'microondas': 4686822,
+  'barman': 38772777,
+  'cortinas-dormitorio': 14613397,
+  'cortinas-sala': 7045703,
+  'copas': 16545926,
+  'alacena': 5556176,
+  'sonido': 28739306,
+});
+
 const $ = (selector) => document.querySelector(selector);
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 const safeRead = (key, fallback) => { try { const value = JSON.parse(localStorage.getItem(key)); return value ?? fallback; } catch { return fallback; } };
@@ -86,8 +117,10 @@ function renderCatalog() {
     .sort((a,b)=>a.order-b.order);
   $('#gift-grid').innerHTML=filtered.length?filtered.map(g=>{
     const available=g.status==='available';
+    const photoId=GIFT_PHOTO_IDS[g.id];
+    const photoUrl=photoId?`https://images.pexels.com/photos/${photoId}/pexels-photo-${photoId}.jpeg?auto=compress&cs=tinysrgb&w=900&h=600&fit=crop`:'';
     return `<article class="gift-card ${available?'':'reserved'}">
-      <div class="gift-art"><span class="emoji" aria-hidden="true">${esc(g.emoji||'🎁')}</span>${g.favorite?'<span class="favorite-mark">♡ Elegido por nosotros</span>':''}</div>
+      <div class="gift-art"><span class="emoji" aria-hidden="true">${esc(g.emoji||'🎁')}</span>${photoUrl?`<img class="gift-photo" src="${photoUrl}" alt="Fotografía referencial de ${esc(g.name)}" loading="lazy" decoding="async"><span class="photo-note">Imagen referencial</span>`:''}${g.favorite?'<span class="favorite-mark">♡ Elegido por nosotros</span>':''}</div>
       <div class="gift-card-body"><span class="gift-tier">${esc(tierName(g.tier))}</span><h3>${esc(g.name)}</h3>
       <p>${esc(g.description)}</p><div class="gift-card-foot">
       <span class="gift-status ${available?'available':'reserved'}">${available?'● Disponible':'🔒 Reservado'}</span>
@@ -331,6 +364,14 @@ async function handleAction(button) {
 }
 
 function registerEvents() {
+  // Si la fuente externa no responde, el regalo conserva su icono original.
+  document.addEventListener('error', event=>{
+    if(event.target instanceof HTMLImageElement && event.target.classList.contains('gift-photo')) {
+      const container=event.target.parentElement;
+      event.target.remove();
+      container?.querySelector('.photo-note')?.remove();
+    }
+  }, true);
   document.addEventListener('click',event=>{
     const tab=event.target.closest('[data-tab]');if(tab){setTab(tab.dataset.tab);return;}
     const close=event.target.closest('[data-close]');if(close){document.getElementById(close.dataset.close)?.close();return;}

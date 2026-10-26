@@ -74,7 +74,7 @@ $('rsvpFamilyName').textContent = invite.family;
     $('rsvpQuota').textContent = 'Pases disponibles para confirmar: hasta ' + quota;
     $('rsvpBtn').disabled = closed;
     $('rsvpBtn').textContent = closed ? 'Confirmaciones cerradas' :
-      (answer === 'pending' ? '♡  Confirmar asistencia' : '♡  Modificar mi respuesta');
+  (answer === 'pending' ? '♡ Confirmar asistencia' : '♡ Modificar mi respuesta');
 
     setHint(closed
       ? 'La fecha limite de confirmacion fue el 14 de noviembre de 2026.'

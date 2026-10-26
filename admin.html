@@ -22,7 +22,7 @@ input[type=file]{display:block;padding:12px 0;max-width:100%}
 <body>
 <div class="wrap">
   <h1>Gerson & Anayeli · Invitaciones</h1>
-  <p class="small">Panel privado para cargar los 24 enlaces, revisar confirmaciones y copiar enlaces individuales. No modifica la mesa de regalos.</p>
+  <p class="small">Panel privado para administrar las 24 invitaciones definitivas, revisar confirmaciones y copiar enlaces individuales. No modifica la mesa de regalos.</p>
   <section class="panel" id="loginPanel">
     <h2>Acceso de administradores</h2>
     <p>Ingresa con la misma cuenta Google autorizada para administrar la mesa de regalos.</p>
@@ -40,9 +40,9 @@ input[type=file]{display:block;padding:12px 0;max-width:100%}
       <span><strong id="pending">0</strong> pendientes</span>
     </div>
     <h3>Cargar lista final (solo una vez)</h3>
-    <p class="small">Selecciona el archivo <strong>invitaciones_privadas.json</strong> del paquete privado. El sistema solo crea invitaciones inexistentes: nunca sobrescribe respuestas guardadas.</p>
+    <p class="small">Selecciona el archivo <strong>invitaciones_privadas.json</strong> del paquete privado. Esta actualización reemplaza las invitaciones anteriores por las 24 definitivas. Antes, descarga una copia de seguridad CSV. Solo se permite si nadie ha confirmado.</p>
     <input type="file" id="file" accept=".json,application/json">
-    <button id="import" disabled>Importar 24 invitaciones</button>
+    <button id="import" disabled>Actualizar a 24 invitaciones y 49 pases</button>
     <button id="export" class="secondary">Descargar enlaces CSV</button>
     <p class="status" id="status">Esperando lista de invitados…</p>
     <h3>Enlaces y confirmaciones</h3>
@@ -133,7 +133,7 @@ input[type=file]{display:block;padding:12px 0;max-width:100%}
     if (!file) return;
     try {
       const parsed = JSON.parse(await file.text());
-      if (!Array.isArray(parsed) || parsed.length !== 24) throw new Error('El archivo debe contener exactamente 24 invitaciones.');
+      if (!Array.isArray(parsed) || parsed.length !== 24 || parsed.reduce((sum,x) => sum + x.quota, 0) !== 49) throw new Error('El archivo debe contener exactamente 24 invitaciones y 49 pases.');
       const ids = new Set();
       for (const x of parsed) {
         if (typeof (x.family ?? x.name) !== 'string' || !(x.family ?? x.name).trim() ||
@@ -150,27 +150,42 @@ input[type=file]{display:block;padding:12px 0;max-width:100%}
   });
 
   $('import').addEventListener('click', async () => {
-    if (!isAdmin || !pendingImport.length) return;
-    if (!confirm('¿Crear las invitaciones que faltan en Firebase? No se modificarán las ya existentes.')) return;
+    if (!isAdmin || pendingImport.length !== 24) return;
+    if (invites.some(x => x.status !== 'pending' || Number(x.confirmedCount || 0) !== 0)) {
+      setStatus('Actualización bloqueada: hay respuestas registradas. No se ha modificado nada.');
+      return;
+    }
+    if (pendingImport.reduce((s,x) => s + x.quota, 0) !== 49) {
+      setStatus('La lista no suma 49 pases.'); return;
+    }
+    if (!confirm('¿Ya descargaste el CSV como copia de seguridad? Esta acción REEMPLAZARÁ las invitaciones anteriores por 24 enlaces NUEVOS (49 pases). Los enlaces anteriores dejarán de funcionar.')) return;
+    if (!confirm('Última confirmación: ¿reemplazar TODAS las invitaciones actuales? Esta operación no puede deshacerse desde el panel.')) return;
     $('import').disabled = true;
-    let created = 0, existing = 0;
     try {
-      for (const [i, item] of pendingImport.entries()) {
-        const ref = db.collection('invitaciones').doc(item.token);
-        const added = await db.runTransaction(async tx => {
-          const snapshot = await tx.get(ref);
-          if (snapshot.exists) return false;
-          tx.set(ref, {family:(item.family ?? item.name).trim(), quota:item.quota, status:'pending',
-            confirmedCount:0, createdAt:firebase.firestore.FieldValue.serverTimestamp(),
-            updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
-          return true;
-        });
-        if (added) created++; else existing++;
-        setStatus('Procesando ' + (i+1) + '/24 · Nuevas: ' + created + ' · Ya existentes: ' + existing);
+      // Firestore batch commits all deletes and creates atomically.
+      // Confirm the current server state, not only the last UI snapshot.
+      const current = await db.collection('invitaciones').get({source:'server'});
+      if (current.docs.some(d => d.data().status !== 'pending' || Number(d.data().confirmedCount || 0) !== 0)) {
+        throw new Error('Hay una respuesta registrada; no se realizó la actualización.');
       }
-      setStatus('¡Listo! ' + created + ' invitaciones creadas y ' + existing + ' existentes conservadas.');
-    } catch (error) { setStatus('Error al importar: ' + error.message + '. Puedes volver a intentar sin duplicar invitaciones.'); }
-    finally { $('import').disabled = !isAdmin || !pendingImport.length; }
+      const batch = db.batch();
+      current.docs.forEach(d => batch.delete(d.ref));
+      pendingImport.forEach(item => {
+        const ref = db.collection('invitaciones').doc(item.token);
+        batch.set(ref, {
+          family: (item.family ?? item.name).trim(), quota: item.quota,
+          status: 'pending', confirmedCount: 0,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      });
+      await batch.commit();
+      pendingImport = [];
+      $('file').value = '';
+      setStatus('Actualización completada. Deben aparecer 24 invitaciones y 49 pases. Descarga ahora el NUEVO CSV.');
+    } catch (error) {
+      setStatus('No se completó la actualización: ' + error.message);
+    } finally { $('import').disabled = !isAdmin || !pendingImport.length; }
   });
 
   $('export').addEventListener('click', () => {

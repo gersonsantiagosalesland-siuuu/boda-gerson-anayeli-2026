@@ -99,7 +99,10 @@ const GIFT_PHOTO_IDS = Object.freeze({
   barman:38772777,
   copas:16545926,
   alacena:5556176,
-  sonido:28739306
+  sonido:28739306,
+  'hervidor-electrico':3847574,
+  'cafetera-electrica':4993062,
+  'aspiradora-vertical-2en1':12167653
 });
 
 const $ = selector => document.querySelector(selector);

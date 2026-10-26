@@ -442,7 +442,7 @@ main();
     renderOriginal();
     if (state.mode !== 'firebase' || !state.isAdmin) return;
     const faltantes = nuevos.filter(g => !state.gifts.some(x => x.id === g.id));
-    const zona = document.querySelector('#admin-panel .admin-actions');
+    const zona = document.querySelector('#admin-panel .admin-actions') || document.querySelector('#admin-panel') || document.querySelector('#administracion') || document.body;
     if (faltantes.length && zona && !document.querySelector('#ga-nuevos') && !document.querySelector('[data-action="add-new-gifts"]')) {
       const boton = document.createElement('button');
       boton.id = 'ga-nuevos';

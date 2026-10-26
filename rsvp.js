@@ -80,7 +80,7 @@ $('rsvpFamilyName').textContent = invite.family;
       ? 'La fecha limite de confirmacion fue el 14 de noviembre de 2026.'
       : 'Puedes confirmar hasta ' + quota + ' personas y modificar tu respuesta hasta el 14 de noviembre de 2026.');
 
-    $('attendance').value = answer === 'no' ? 'no' : 'si';
+    $('attendance').value = answer === 'declined' ? 'no' : 'si';
     updateCountOptions(quota, count);
     $('countRow').hidden = $('attendance').value === 'no';
   }

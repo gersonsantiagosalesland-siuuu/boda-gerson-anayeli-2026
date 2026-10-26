@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="no-referrer">
+<title>Administración de invitaciones · Gerson & Anayeli</title>
+<style>
+:root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#192b46;background:#f5f2eb}
+*{box-sizing:border-box}body{margin:0;padding:24px 14px}.wrap{max-width:1000px;margin:0 auto}
+h1{font-family:Georgia,serif;font-size:32px;font-weight:normal;margin:0 0 8px}
+p{line-height:1.6}.small{font-size:13px;color:#657080}.panel{background:#fff;border:1px solid #dfd4be;border-radius:12px;padding:24px;margin:18px 0;box-shadow:0 5px 22px #17243c0b}
+button,.btn{border:1px solid #bba26b;background:#213552;color:#fff;border-radius:7px;padding:11px 16px;cursor:pointer;font-weight:600;margin:5px 6px 5px 0}
+button.secondary{background:#fff;color:#213552}button:disabled{opacity:.5;cursor:not-allowed}
+input[type=file]{display:block;padding:12px 0;max-width:100%}
+.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:11px;text-align:left;border-bottom:1px solid #e8e1d6;white-space:nowrap}th{background:#f6f2e9}
+.stat{display:flex;gap:14px;flex-wrap:wrap}.stat span{display:inline-block;background:#f4f0e8;border-radius:9px;padding:14px 18px}.stat strong{display:block;font-size:23px}
+.status{padding:12px;background:#f4f0e8;border-radius:7px;white-space:pre-wrap}.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Gerson & Anayeli · Invitaciones</h1>
+  <p class="small">Panel privado para cargar los 24 enlaces, revisar confirmaciones y copiar enlaces individuales. No modifica la mesa de regalos.</p>
+  <section class="panel" id="loginPanel">
+    <h2>Acceso de administradores</h2>
+    <p>Ingresa con la misma cuenta Google autorizada para administrar la mesa de regalos.</p>
+    <button id="login">Acceder con Google</button>
+    <p id="loginStatus" class="status">Comprobando sesión…</p>
+  </section>
+  <section class="panel hidden" id="adminPanel">
+    <div style="display:flex;justify-content:space-between;gap:15px;align-items:center;flex-wrap:wrap">
+      <h2>Control de invitados</h2><button class="secondary" id="logout">Cerrar sesión</button>
+    </div>
+    <div class="stat">
+      <span><strong id="families">0</strong> invitaciones</span>
+      <span><strong id="quota">0</strong> pases asignados</span>
+      <span><strong id="confirmed">0</strong> confirmados</span>
+      <span><strong id="pending">0</strong> pendientes</span>
+    </div>
+    <h3>Cargar lista final (solo una vez)</h3>
+    <p class="small">Selecciona el archivo <strong>invitaciones_privadas.json</strong> del paquete privado. El sistema solo crea invitaciones inexistentes: nunca sobrescribe respuestas guardadas.</p>
+    <input type="file" id="file" accept=".json,application/json">
+    <button id="import" disabled>Importar 24 invitaciones</button>
+    <button id="export" class="secondary">Descargar enlaces CSV</button>
+    <p class="status" id="status">Esperando lista de invitados…</p>
+    <h3>Enlaces y confirmaciones</h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Familia / invitado</th><th>Pases</th><th>Respuesta</th><th>Asisten</th><th>Enlace</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table></div>
+  </section>
+</div>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="../firebase-config.js"></script>
+<script>
+(() => {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  let db, auth, isAdmin = false, pendingImport = [], invites = [], unsubscribe = null;
+  const root = location.href.replace(/admin\.html(?:\?.*)?$/, '');
+  const setStatus = message => { $('status').textContent = message; };
+  const getLink = token => new URL('index.html?i=' + encodeURIComponent(token), root).href;
+  const csvCell = value => '"' + String(value ?? '').replace(/"/g, '""') + '"';
+
+  function render() {
+    const sorted = invites.slice().sort((a,b) => a.name.localeCompare(b.name, 'es'));
+    $('families').textContent = sorted.length;
+    $('quota').textContent = sorted.reduce((sum,x) => sum + x.quota, 0);
+    $('confirmed').textContent = sorted.reduce((sum,x) => sum + (x.attendance === 'si' ? x.confirmedCount : 0), 0);
+    $('pending').textContent = sorted.filter(x => !x.attendance || x.attendance === 'pending').length;
+    const body = $('rows');
+    body.replaceChildren();
+    for (const invite of sorted) {
+      const tr = document.createElement('tr');
+      const cells = [invite.name, String(invite.quota),
+        invite.attendance === 'si' ? 'Sí' : invite.attendance === 'no' ? 'No' : 'Pendiente',
+        String(invite.attendance === 'si' ? invite.confirmedCount : 0)];
+      for (const value of cells) {
+        const td = document.createElement('td'); td.textContent = value; tr.appendChild(td);
+      }
+      const td = document.createElement('td');
+      const button = document.createElement('button');
+      button.className = 'secondary'; button.textContent = 'Copiar enlace';
+      button.addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(getLink(invite.id)); button.textContent = '¡Copiado!'; }
+        catch { window.prompt('Copia el enlace:', getLink(invite.id)); }
+      });
+      td.appendChild(button); tr.appendChild(td); body.appendChild(tr);
+    }
+  }
+
+  async function checkAdmin(user) {
+    if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+    isAdmin = false;
+    $('adminPanel').classList.add('hidden');
+    $('loginPanel').classList.remove('hidden');
+    if (!user || user.isAnonymous) {
+      $('loginStatus').textContent = 'Inicia sesión con Google para continuar.';
+      return;
+    }
+    try {
+      const doc = await db.collection('admins').doc(user.uid).get();
+      if (!doc.exists || doc.data().enabled !== true) {
+        $('loginStatus').textContent = 'Esta cuenta no tiene permisos de administrador. UID: ' + user.uid;
+        return;
+      }
+      isAdmin = true;
+      $('loginPanel').classList.add('hidden');
+      $('adminPanel').classList.remove('hidden');
+      unsubscribe = db.collection('wedding_invites').onSnapshot(snapshot => {
+        invites = snapshot.docs.map(d => ({id:d.id, ...d.data()}));
+        render();
+      }, error => setStatus('Error al leer invitaciones: ' + error.message));
+    } catch (error) {
+      $('loginStatus').textContent = 'No se pudo verificar el acceso: ' + error.message;
+    }
+  }
+
+  $('login').addEventListener('click', async () => {
+    try { await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
+    catch (error) { $('loginStatus').textContent = 'Error: ' + error.message; }
+  });
+  $('logout').addEventListener('click', () => auth.signOut());
+
+  $('file').addEventListener('change', async event => {
+    pendingImport = [];
+    $('import').disabled = true;
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      const parsed = JSON.parse(await file.text());
+      if (!Array.isArray(parsed) || parsed.length !== 24) throw new Error('El archivo debe contener exactamente 24 invitaciones.');
+      const ids = new Set();
+      for (const x of parsed) {
+        if (typeof x.name !== 'string' || !x.name.trim() ||
+            !/^[A-Za-z0-9_-]{20,80}$/.test(x.token) ||
+            !Number.isInteger(x.quota) || x.quota < 1 || x.quota > 20 || ids.has(x.token)) {
+          throw new Error('El archivo contiene un invitado, pase o token inválido.');
+        }
+        ids.add(x.token);
+      }
+      pendingImport = parsed;
+      $('import').disabled = !isAdmin;
+      setStatus('Archivo validado: 24 invitaciones, ' + parsed.reduce((sum,x) => sum + x.quota, 0) + ' pases.');
+    } catch (error) { setStatus('No se pudo leer la lista: ' + error.message); }
+  });
+
+  $('import').addEventListener('click', async () => {
+    if (!isAdmin || !pendingImport.length) return;
+    if (!confirm('¿Crear las invitaciones que faltan en Firebase? No se modificarán las ya existentes.')) return;
+    $('import').disabled = true;
+    let created = 0, existing = 0;
+    try {
+      for (const [i, item] of pendingImport.entries()) {
+        const ref = db.collection('wedding_invites').doc(item.token);
+        const added = await db.runTransaction(async tx => {
+          const snapshot = await tx.get(ref);
+          if (snapshot.exists) return false;
+          tx.set(ref, {name:item.name, quota:item.quota, attendance:'pending',
+            confirmedCount:0, createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+          return true;
+        });
+        if (added) created++; else existing++;
+        setStatus('Procesando ' + (i+1) + '/24 · Nuevas: ' + created + ' · Ya existentes: ' + existing);
+      }
+      setStatus('¡Listo! ' + created + ' invitaciones creadas y ' + existing + ' existentes conservadas.');
+    } catch (error) { setStatus('Error al importar: ' + error.message + '. Puedes volver a intentar sin duplicar invitaciones.'); }
+    finally { $('import').disabled = !isAdmin || !pendingImport.length; }
+  });
+
+  $('export').addEventListener('click', () => {
+    if (!isAdmin) return;
+    const lines = [['Familia','Pases','Enlace','Respuesta','Asistentes'].map(csvCell).join(',')];
+    for (const x of invites) {
+      lines.push([x.name,x.quota,getLink(x.id),x.attendance || 'pending',x.confirmedCount || 0].map(csvCell).join(','));
+    }
+    const url = URL.createObjectURL(new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'}));
+    const a = document.createElement('a'); a.href = url; a.download = 'enlaces_boda_gerson_anayeli.csv'; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+
+  if (!window.FIREBASE_CONFIG || !window.firebase) {
+    $('loginStatus').textContent = 'No se encontró Firebase. Revisa ../firebase-config.js.';
+    $('login').disabled = true;
+    return;
+  }
+  if (!firebase.apps.length) firebase.initializeApp(window.FIREBASE_CONFIG);
+  db = firebase.firestore(); auth = firebase.auth();
+  auth.onAuthStateChanged(checkAdmin, error => { $('loginStatus').textContent = error.message; });
+})();
+</script>
+</body>
+</html>

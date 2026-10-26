@@ -453,7 +453,32 @@ main();
     }
   };
 
-  document.addEventListener('click', async evento => {
+  
+  // Mantener visible el boton cuando Firebase actualice el panel
+  const renderAdminOriginal = renderAdmin;
+  renderAdmin = function () {
+    renderAdminOriginal();
+
+    if (state.mode !== 'firebase' || !state.isAdmin) return;
+
+    const faltantes = nuevos.filter(
+      g => !state.gifts.some(x => x.id === g.id)
+    );
+
+    const zona = document.querySelector('#admin-panel .admin-actions');
+
+    if (!faltantes.length || !zona || zona.querySelector('#ga-nuevos')) return;
+
+    const boton = document.createElement('button');
+    boton.id = 'ga-nuevos';
+    boton.type = 'button';
+    boton.className = 'button button-primary button-small';
+    boton.textContent = 'Agregar ' + faltantes.length + ' regalos nuevos';
+
+    zona.prepend(boton);
+  };
+
+document.addEventListener('click', async evento => {
     const boton = evento.target.closest('#ga-nuevos');
     if (!boton) return;
     evento.preventDefault();

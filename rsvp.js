@@ -124,7 +124,7 @@
       const auth = firebase.auth();
       state.db = firebase.firestore();
       await ensureSignedIn(auth);
-      state.ref = state.db.collection('wedding_invites').doc(token);
+      state.ref = state.db.collection('invitaciones').doc(token);
 
       // La suscripcion permite ver la respuesta actualizada desde cualquier dispositivo.
       state.ref.onSnapshot(snapshot => {

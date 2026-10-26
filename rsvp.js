@@ -66,11 +66,11 @@
       (quota === 1 ? 'un pase' : quota + ' pases') + ' para ' + invite.family + '.';
 
     let status = 'Aun no han confirmado su asistencia.';
-    if (answer === 'si') status = 'Asistencia confirmada: ' + count + (count === 1 ? ' persona.' : ' personas.');
-    if (answer === 'no') status = 'Nos indicaron que no podran asistir.';
+    if (answer === 'confirmed') status = 'Asistencia confirmada: ' + count + (count === 1 ? ' persona.' : ' personas.');
+if (answer === 'declined') status = 'Nos indicaron que no podrán asistir.';
 
-    setSummary(invite.name, quota + (quota === 1 ? ' pase asignado. ' : ' pases asignados. ') + status);
-    $('rsvpFamilyName').textContent = invite.name;
+setSummary(invite.family, quota + (quota === 1 ? ' pase asignado. ' : ' pases asignados. ') + status);
+$('rsvpFamilyName').textContent = invite.family;
     $('rsvpQuota').textContent = 'Pases disponibles para confirmar: hasta ' + quota;
     $('rsvpBtn').disabled = closed;
     $('rsvpBtn').textContent = closed ? 'Confirmaciones cerradas' :

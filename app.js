@@ -405,3 +405,80 @@ function main() {
   }
 }
 main();
+
+
+/* Actualizacion de regalos Gerson y Anayeli - pegar al FINAL de app.js */
+(() => {
+  const retirados = new Set(['cubiertos', 'cortinas-dormitorio', 'cortinas-sala']);
+  const nuevos = [
+    {id:'hervidor-electrico',name:'Hervidor el\u00e9ctrico',tier:'eco',favorite:false,emoji:'\uD83E\uDED6',order:26,delivery:'reception',description:'Hervidor el\u00e9ctrico con apagado autom\u00e1tico. Capacidad por definir.'},
+    {id:'cafetera-electrica',name:'Cafetera el\u00e9ctrica',tier:'mid',favorite:false,emoji:'\u2615',order:27,delivery:'reception',description:'Cafetera el\u00e9ctrica para uso dom\u00e9stico. Tipo y capacidad por definir.'},
+    {id:'aspiradora-vertical-2en1',name:'Aspiradora vertical inal\u00e1mbrica 2 en 1',tier:'special',favorite:false,emoji:'\uD83E\uDDF9',order:28,delivery:'coordinate',description:'Aspiradora recargable, utilizable como aspiradora vertical y de mano. Autonom\u00eda por definir.'}
+  ];
+  const especificaciones = {
+    protector:['Protector lavable. Medida exacta del colch\u00f3n por confirmar.','Protector lavable para colch\u00f3n de 2 plazas.'],
+    cama:['Un solo conjunto de ropa de cama: s\u00e1banas, fundas y edred\u00f3n. Medidas por confirmar.','Un solo conjunto de ropa de cama para 2 plazas: s\u00e1banas, fundas y edred\u00f3n. Colores preferidos: marr\u00f3n, beige, gris o tonos neutros.'],
+    veladores:['Dos mesas de noche en colores neutros. Medidas por confirmar.','Dos mesas de noche de color blanco, beige o marr\u00f3n. Medidas por confirmar.'],
+    microondas:['Microondas de capacidad apropiada para el hogar.','Microondas de 20 litros de capacidad.'],
+    sonido:['Con Bluetooth, buena potencia y calidad de audio. Caracter\u00edsticas por definir.','Torre de sonido con Bluetooth, buena potencia y calidad de audio.']
+  };
+
+  for (const regalo of nuevos) {
+    if (!DEFAULT_GIFTS.some(g => g.id === regalo.id)) DEFAULT_GIFTS.push(regalo);
+  }
+  DEFAULT_GIFTS.splice(0, DEFAULT_GIFTS.length, ...DEFAULT_GIFTS.filter(g => !retirados.has(g.id)));
+  const actualizarDescripcion = g => {
+    const cambio = especificaciones[g.id];
+    return cambio && g.description === cambio[0] ? {...g, description:cambio[1]} : g;
+  };
+  for (const regalo of DEFAULT_GIFTS) {
+    const cambio = especificaciones[regalo.id];
+    if (cambio && regalo.description === cambio[0]) regalo.description = cambio[1];
+  }
+
+  const renderOriginal = renderAll;
+  renderAll = function () {
+    state.gifts = state.gifts.filter(g => !retirados.has(g.id)).map(actualizarDescripcion);
+    renderOriginal();
+    if (state.mode !== 'firebase' || !state.isAdmin) return;
+    const faltantes = nuevos.filter(g => !state.gifts.some(x => x.id === g.id));
+    const zona = document.querySelector('#admin-panel .admin-actions');
+    if (faltantes.length && zona && !document.querySelector('#ga-nuevos') && !document.querySelector('[data-action="add-new-gifts"]')) {
+      const boton = document.createElement('button');
+      boton.id = 'ga-nuevos';
+      boton.type = 'button';
+      boton.className = 'button button-primary button-small';
+      boton.textContent = 'Agregar ' + faltantes.length + ' regalos nuevos';
+      zona.prepend(boton);
+    }
+  };
+
+  document.addEventListener('click', async evento => {
+    const boton = evento.target.closest('#ga-nuevos');
+    if (!boton) return;
+    evento.preventDefault();
+    evento.stopImmediatePropagation();
+    if (state.mode !== 'firebase' || !state.isAdmin) return;
+    boton.disabled = true;
+    try {
+      let creados = 0;
+      for (const regalo of nuevos) {
+        const agregado = await state.fb.runTransaction(state.firebase.db, async tx => {
+          const ref = state.fb.doc(state.firebase.db, 'gifts', regalo.id);
+          if ((await tx.get(ref)).exists()) return false;
+          tx.set(ref, {...regalo, status:'available', updatedAt:state.fb.serverTimestamp()});
+          return true;
+        });
+        if (agregado) creados++;
+      }
+      toast(creados + ' regalos nuevos agregados a Firebase.');
+    } catch (error) {
+      toast(friendlyError(error));
+    } finally {
+      boton.disabled = false;
+    }
+  }, true);
+
+  if (state.mode === 'demo') loadDemo();
+  renderAll();
+})();

@@ -1016,7 +1016,13 @@ function attachOwnListener() {
 
   state.myReservations = [];
 
-  if (!state.user) return;
+  // El administrador utiliza el estado publico de gifts para el resumen.
+  // No consultar reservations hasta que se autorice la revelacion;
+  // la coleccion privada esta protegida por las reglas de Firestore.
+  if (!state.user || state.isAdmin) {
+    renderMyReservations();
+    return;
+  }
 
   const f = state.fb;
   const db = state.firebase.db;

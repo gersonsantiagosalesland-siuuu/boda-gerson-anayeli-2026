@@ -136,7 +136,7 @@
           return;
         }
         const data = snapshot.data();
-        if (!Number.isInteger(data.quota) || data.quota < 1 || data.quota > 20 || typeof data.name !== 'string') {
+        if (!Number.isInteger(data.quota) || data.quota < 1 || data.quota > 20 || typeof data.family !== 'string') {
           throw new Error('Datos de invitacion invalidos.');
         }
         state.invite = data;

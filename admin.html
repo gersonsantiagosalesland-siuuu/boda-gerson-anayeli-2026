@@ -55,7 +55,7 @@ input[type=file]{display:block;padding:12px 0;max-width:100%}
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-<script src="../firebase-config.js"></script>
+<script src="./firebase-config.js"></script>
 <script>
 (() => {
   'use strict';
@@ -67,18 +67,18 @@ input[type=file]{display:block;padding:12px 0;max-width:100%}
   const csvCell = value => '"' + String(value ?? '').replace(/"/g, '""') + '"';
 
   function render() {
-    const sorted = invites.slice().sort((a,b) => a.name.localeCompare(b.name, 'es'));
+    const sorted = invites.slice().sort((a,b) => a.family.localeCompare(b.family, 'es'));
     $('families').textContent = sorted.length;
     $('quota').textContent = sorted.reduce((sum,x) => sum + x.quota, 0);
-    $('confirmed').textContent = sorted.reduce((sum,x) => sum + (x.attendance === 'si' ? x.confirmedCount : 0), 0);
-    $('pending').textContent = sorted.filter(x => !x.attendance || x.attendance === 'pending').length;
+    $('confirmed').textContent = sorted.reduce((sum,x) => sum + (x.status === 'yes' ? x.confirmedCount : 0), 0);
+    $('pending').textContent = sorted.filter(x => !x.status || x.status === 'pending').length;
     const body = $('rows');
     body.replaceChildren();
     for (const invite of sorted) {
       const tr = document.createElement('tr');
-      const cells = [invite.name, String(invite.quota),
-        invite.attendance === 'si' ? 'Sí' : invite.attendance === 'no' ? 'No' : 'Pendiente',
-        String(invite.attendance === 'si' ? invite.confirmedCount : 0)];
+      const cells = [invite.family, String(invite.quota),
+        invite.status === 'yes' ? 'Sí' : invite.status === 'no' ? 'No' : 'Pendiente',
+        String(invite.status === 'yes' ? invite.confirmedCount : 0)];
       for (const value of cells) {
         const td = document.createElement('td'); td.textContent = value; tr.appendChild(td);
       }
@@ -111,7 +111,7 @@ input[type=file]{display:block;padding:12px 0;max-width:100%}
       isAdmin = true;
       $('loginPanel').classList.add('hidden');
       $('adminPanel').classList.remove('hidden');
-      unsubscribe = db.collection('wedding_invites').onSnapshot(snapshot => {
+      unsubscribe = db.collection('invitaciones').onSnapshot(snapshot => {
         invites = snapshot.docs.map(d => ({id:d.id, ...d.data()}));
         render();
       }, error => setStatus('Error al leer invitaciones: ' + error.message));
@@ -136,8 +136,8 @@ input[type=file]{display:block;padding:12px 0;max-width:100%}
       if (!Array.isArray(parsed) || parsed.length !== 24) throw new Error('El archivo debe contener exactamente 24 invitaciones.');
       const ids = new Set();
       for (const x of parsed) {
-        if (typeof x.name !== 'string' || !x.name.trim() ||
-            !/^[A-Za-z0-9_-]{20,80}$/.test(x.token) ||
+        if (typeof (x.family ?? x.name) !== 'string' || !(x.family ?? x.name).trim() ||
+            !/^[A-Za-z0-9_-]{20,64}$/.test(x.token) ||
             !Number.isInteger(x.quota) || x.quota < 1 || x.quota > 20 || ids.has(x.token)) {
           throw new Error('El archivo contiene un invitado, pase o token inválido.');
         }
@@ -156,12 +156,13 @@ input[type=file]{display:block;padding:12px 0;max-width:100%}
     let created = 0, existing = 0;
     try {
       for (const [i, item] of pendingImport.entries()) {
-        const ref = db.collection('wedding_invites').doc(item.token);
+        const ref = db.collection('invitaciones').doc(item.token);
         const added = await db.runTransaction(async tx => {
           const snapshot = await tx.get(ref);
           if (snapshot.exists) return false;
-          tx.set(ref, {name:item.name, quota:item.quota, attendance:'pending',
-            confirmedCount:0, createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+          tx.set(ref, {family:(item.family ?? item.name).trim(), quota:item.quota, status:'pending',
+            confirmedCount:0, createdAt:firebase.firestore.FieldValue.serverTimestamp(),
+            updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
           return true;
         });
         if (added) created++; else existing++;
@@ -176,7 +177,7 @@ input[type=file]{display:block;padding:12px 0;max-width:100%}
     if (!isAdmin) return;
     const lines = [['Familia','Pases','Enlace','Respuesta','Asistentes'].map(csvCell).join(',')];
     for (const x of invites) {
-      lines.push([x.name,x.quota,getLink(x.id),x.attendance || 'pending',x.confirmedCount || 0].map(csvCell).join(','));
+      lines.push([x.family,x.quota,getLink(x.id),x.status || 'pending',x.confirmedCount || 0].map(csvCell).join(','));
     }
     const url = URL.createObjectURL(new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'}));
     const a = document.createElement('a'); a.href = url; a.download = 'enlaces_boda_gerson_anayeli.csv'; a.click();
@@ -184,7 +185,7 @@ input[type=file]{display:block;padding:12px 0;max-width:100%}
   });
 
   if (!window.FIREBASE_CONFIG || !window.firebase) {
-    $('loginStatus').textContent = 'No se encontró Firebase. Revisa ../firebase-config.js.';
+    $('loginStatus').textContent = 'No se encontró Firebase. Revisa ./firebase-config.js.';
     $('login').disabled = true;
     return;
   }

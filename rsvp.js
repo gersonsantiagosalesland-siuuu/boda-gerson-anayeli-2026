@@ -58,12 +58,12 @@
     if (!invite) return;
 
     const quota = invite.quota;
-    const answer = invite.attendance || 'pending';
+    const answer = invite.status || 'pending';
     const count = Number(invite.confirmedCount || 0);
     const closed = Date.now() >= DEADLINE_UTC;
 
     $('guestGreeting').textContent = 'Con mucho cariño, hemos reservado ' +
-      (quota === 1 ? 'un pase' : quota + ' pases') + ' para ' + invite.name + '.';
+      (quota === 1 ? 'un pase' : quota + ' pases') + ' para ' + invite.family + '.';
 
     let status = 'Aun no han confirmado su asistencia.';
     if (answer === 'si') status = 'Asistencia confirmada: ' + count + (count === 1 ? ' persona.' : ' personas.');

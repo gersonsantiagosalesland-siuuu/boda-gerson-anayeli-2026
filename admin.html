@@ -70,15 +70,15 @@ input[type=file]{display:block;padding:12px 0;max-width:100%}
     const sorted = invites.slice().sort((a,b) => a.family.localeCompare(b.family, 'es'));
     $('families').textContent = sorted.length;
     $('quota').textContent = sorted.reduce((sum,x) => sum + x.quota, 0);
-    $('confirmed').textContent = sorted.reduce((sum,x) => sum + (x.status === 'confirmed' ? x.confirmedCount : 0), 0);
+    $('confirmed').textContent = sorted.reduce((sum,x) => sum + (x.status === 'yes' ? x.confirmedCount : 0), 0);
     $('pending').textContent = sorted.filter(x => !x.status || x.status === 'pending').length;
     const body = $('rows');
     body.replaceChildren();
     for (const invite of sorted) {
       const tr = document.createElement('tr');
       const cells = [invite.family, String(invite.quota),
-        invite.status === 'confirmed' ? 'Sí' : invite.status === 'declined' ? 'No' : 'Pendiente',
-        String(invite.status === 'confirmed' ? invite.confirmedCount : 0)];
+        invite.status === 'yes' ? 'Sí' : invite.status === 'no' ? 'No' : 'Pendiente',
+        String(invite.status === 'yes' ? invite.confirmedCount : 0)];
       for (const value of cells) {
         const td = document.createElement('td'); td.textContent = value; tr.appendChild(td);
       }

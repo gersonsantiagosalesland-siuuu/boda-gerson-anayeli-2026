@@ -66,8 +66,8 @@
       (quota === 1 ? 'un pase' : quota + ' pases') + ' para ' + invite.family + '.';
 
     let status = 'Aun no han confirmado su asistencia.';
-    if (answer === 'confirmed') status = 'Asistencia confirmada: ' + count + (count === 1 ? ' persona.' : ' personas.');
-if (answer === 'declined') status = 'Nos indicaron que no podrán asistir.';
+    if (answer === 'yes') status = 'Asistencia confirmada: ' + count + (count === 1 ? ' persona.' : ' personas.');
+if (answer === 'no') status = 'Nos indicaron que no podrán asistir.';
 
 setSummary(invite.family, quota + (quota === 1 ? ' pase asignado. ' : ' pases asignados. ') + status);
 $('rsvpFamilyName').textContent = invite.family;
@@ -80,7 +80,7 @@ $('rsvpFamilyName').textContent = invite.family;
       ? 'La fecha limite de confirmacion fue el 14 de noviembre de 2026.'
       : 'Puedes confirmar hasta ' + quota + ' personas y modificar tu respuesta hasta el 14 de noviembre de 2026.');
 
-    $('attendance').value = answer === 'declined' ? 'no' : 'si';
+    $('attendance').value = answer === 'no' ? 'no' : 'si';
     updateCountOptions(quota, count);
     $('countRow').hidden = $('attendance').value === 'no';
   }

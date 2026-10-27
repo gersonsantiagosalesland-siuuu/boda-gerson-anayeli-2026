@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="es">
 <head>
@@ -6,207 +7,512 @@
 <meta name="robots" content="noindex,nofollow,noarchive">
 <meta name="referrer" content="no-referrer">
 <title>Administración de invitaciones · Gerson & Anayeli</title>
+
 <style>
-:root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#192b46;background:#f5f2eb}
-*{box-sizing:border-box}body{margin:0;padding:24px 14px}.wrap{max-width:1000px;margin:0 auto}
-h1{font-family:Georgia,serif;font-size:32px;font-weight:normal;margin:0 0 8px}
-p{line-height:1.6}.small{font-size:13px;color:#657080}.panel{background:#fff;border:1px solid #dfd4be;border-radius:12px;padding:24px;margin:18px 0;box-shadow:0 5px 22px #17243c0b}
-button,.btn{border:1px solid #bba26b;background:#213552;color:#fff;border-radius:7px;padding:11px 16px;cursor:pointer;font-weight:600;margin:5px 6px 5px 0}
-button.secondary{background:#fff;color:#213552}button:disabled{opacity:.5;cursor:not-allowed}
-input[type=file]{display:block;padding:12px 0;max-width:100%}
-.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:11px;text-align:left;border-bottom:1px solid #e8e1d6;white-space:nowrap}th{background:#f6f2e9}
-.stat{display:flex;gap:14px;flex-wrap:wrap}.stat span{display:inline-block;background:#f4f0e8;border-radius:9px;padding:14px 18px}.stat strong{display:block;font-size:23px}
-.status{padding:12px;background:#f4f0e8;border-radius:7px;white-space:pre-wrap}.hidden{display:none!important}
+:root {
+  font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+  color: #192b46;
+  background: #f5f2eb;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 24px 14px;
+}
+
+.wrap {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+h1 {
+  font-family: Georgia, serif;
+  font-size: 32px;
+  font-weight: normal;
+  margin: 0 0 8px;
+}
+
+p {
+  line-height: 1.6;
+}
+
+.small {
+  font-size: 13px;
+  color: #657080;
+}
+
+.panel {
+  background: #fff;
+  border: 1px solid #dfd4be;
+  border-radius: 12px;
+  padding: 24px;
+  margin: 18px 0;
+  box-shadow: 0 5px 22px #17243c0b;
+}
+
+button,
+.btn {
+  border: 1px solid #bba26b;
+  background: #213552;
+  color: #fff;
+  border-radius: 7px;
+  padding: 11px 16px;
+  cursor: pointer;
+  font-weight: 600;
+  margin: 5px 6px 5px 0;
+}
+
+button.secondary {
+  background: #fff;
+  color: #213552;
+}
+
+button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.tablewrap {
+  overflow: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+th,
+td {
+  padding: 11px;
+  text-align: left;
+  border-bottom: 1px solid #e8e1d6;
+  white-space: nowrap;
+}
+
+th {
+  background: #f6f2e9;
+}
+
+.stat {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.stat span {
+  display: inline-block;
+  background: #f4f0e8;
+  border-radius: 9px;
+  padding: 14px 18px;
+}
+
+.stat strong {
+  display: block;
+  font-size: 23px;
+}
+
+.status {
+  padding: 12px;
+  background: #f4f0e8;
+  border-radius: 7px;
+  white-space: pre-wrap;
+}
+
+.hidden {
+  display: none !important;
+}
 </style>
 </head>
+
 <body>
 <div class="wrap">
+
   <h1>Gerson & Anayeli · Invitaciones</h1>
-  <p class="small">Panel privado para administrar las 24 invitaciones definitivas, revisar confirmaciones y copiar enlaces individuales. No modifica la mesa de regalos.</p>
+
+  <p class="small">
+    Panel privado para administrar las invitaciones,
+    revisar confirmaciones y copiar enlaces individuales.
+    Actualmente hay 25 invitaciones y 50 pases asignados.
+    No modifica la mesa de regalos.
+  </p>
+
   <section class="panel" id="loginPanel">
     <h2>Acceso de administradores</h2>
-    <p>Ingresa con la misma cuenta Google autorizada para administrar la mesa de regalos.</p>
+
+    <p>
+      Ingresa con la misma cuenta Google autorizada
+      para administrar la mesa de regalos.
+    </p>
+
     <button id="login">Acceder con Google</button>
-    <p id="loginStatus" class="status">Comprobando sesión…</p>
+
+    <p id="loginStatus" class="status">
+      Comprobando sesión…
+    </p>
   </section>
+
   <section class="panel hidden" id="adminPanel">
+
     <div style="display:flex;justify-content:space-between;gap:15px;align-items:center;flex-wrap:wrap">
-      <h2>Control de invitados</h2><button class="secondary" id="logout">Cerrar sesión</button>
+      <h2>Control de invitados</h2>
+      <button class="secondary" id="logout">
+        Cerrar sesión
+      </button>
     </div>
+
     <div class="stat">
-      <span><strong id="families">0</strong> invitaciones</span>
-      <span><strong id="quota">0</strong> pases asignados</span>
-      <span><strong id="confirmed">0</strong> confirmados</span>
-      <span><strong id="pending">0</strong> pendientes</span>
+      <span>
+        <strong id="families">0</strong>
+        invitaciones
+      </span>
+
+      <span>
+        <strong id="quota">0</strong>
+        pases asignados
+      </span>
+
+      <span>
+        <strong id="confirmed">0</strong>
+        personas confirmadas
+      </span>
+
+      <span>
+        <strong id="pending">0</strong>
+        invitaciones pendientes
+      </span>
     </div>
-    <h3>Cargar lista final (solo una vez)</h3>
-    <p class="small">Selecciona el archivo <strong>invitaciones_privadas.json</strong> del paquete privado. Esta actualización reemplaza las invitaciones anteriores por las 24 definitivas. Antes, descarga una copia de seguridad CSV. Solo se permite si nadie ha confirmado.</p>
-    <input type="file" id="file" accept=".json,application/json">
-    <button id="import" disabled>Actualizar a 24 invitaciones y 49 pases</button>
-    <button id="export" class="secondary">Descargar enlaces CSV</button>
-    <p class="status" id="status">Esperando lista de invitados…</p>
+
+    <h3>Administración de invitaciones</h3>
+
+    <p class="small">
+      La carga masiva de invitaciones está deshabilitada
+      para proteger los enlaces y las confirmaciones
+      que ya se han enviado.
+    </p>
+
+    <button id="export" class="secondary">
+      Descargar enlaces CSV
+    </button>
+
+    <p class="status" id="status">
+      Esperando lista de invitados…
+    </p>
+
     <h3>Enlaces y confirmaciones</h3>
-    <div class="tablewrap"><table>
-      <thead><tr><th>Familia / invitado</th><th>Pases</th><th>Respuesta</th><th>Asisten</th><th>Enlace</th></tr></thead>
-      <tbody id="rows"></tbody>
-    </table></div>
+
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Familia / invitado</th>
+            <th>Pases</th>
+            <th>Respuesta</th>
+            <th>Asisten</th>
+            <th>Enlace</th>
+          </tr>
+        </thead>
+
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+
   </section>
 </div>
+
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="./firebase-config.js"></script>
+
 <script>
 (() => {
   'use strict';
-  const $ = id => document.getElementById(id);
-  let db, auth, isAdmin = false, pendingImport = [], invites = [], unsubscribe = null;
-  const root = location.href.replace(/admin\.html(?:\?.*)?$/, '');
-  const setStatus = message => { $('status').textContent = message; };
-  const getLink = token => new URL('index.html?i=' + encodeURIComponent(token), root).href;
-  const csvCell = value => '"' + String(value ?? '').replace(/"/g, '""') + '"';
 
+  const $ = id => document.getElementById(id);
+
+  let db;
+  let auth;
+  let isAdmin = false;
+  let invites = [];
+  let unsubscribe = null;
+
+  const root = new URL('./', window.location.href).href;
+
+  const setStatus = message => {
+    $('status').textContent = message;
+  };
+
+  const getLink = token => {
+    const url = new URL('index.html', root);
+    url.searchParams.set('i', token);
+    return url.href;
+  };
+
+  const csvCell = value => {
+    return '"' + String(value ?? '').replace(/"/g, '""') + '"';
+  };
+
+  // Reconocer confirmaciones antiguas y nuevas.
+  function isConfirmed(status) {
+    return status === 'yes' || status === 'confirmed';
+  }
+
+  function isDeclined(status) {
+    return status === 'no' || status === 'declined';
+  }
+
+  function isPending(status) {
+    return !status || status === 'pending';
+  }
+
+  function getConfirmedCount(invite) {
+    if (!isConfirmed(invite.status)) return 0;
+
+    const count = Number(invite.confirmedCount || 0);
+    return Number.isFinite(count) && count >= 0 ? count : 0;
+  }
+
+  function getStatusLabel(status) {
+    if (isConfirmed(status)) return 'Sí';
+    if (isDeclined(status)) return 'No';
+    if (isPending(status)) return 'Pendiente';
+    return 'Estado desconocido';
+  }
+
+  // Dibujar el panel y actualizar contadores.
   function render() {
-    const sorted = invites.slice().sort((a,b) => a.family.localeCompare(b.family, 'es'));
-    $('families').textContent = sorted.length;
-    $('quota').textContent = sorted.reduce((sum,x) => sum + x.quota, 0);
-    $('confirmed').textContent = sorted.reduce((sum,x) => sum + (x.status === 'yes' ? x.confirmedCount : 0), 0);
-    $('pending').textContent = sorted.filter(x => !x.status || x.status === 'pending').length;
+    const sorted = invites.slice().sort((a, b) =>
+      String(a.family || '').localeCompare(
+        String(b.family || ''),
+        'es'
+      )
+    );
+
+    const totalInvitations = sorted.length;
+
+    const totalQuota = sorted.reduce(
+      (sum, invite) => sum + Number(invite.quota || 0),
+      0
+    );
+
+    const totalConfirmed = sorted.reduce(
+      (sum, invite) => sum + getConfirmedCount(invite),
+      0
+    );
+
+    const totalPending = sorted.filter(
+      invite => isPending(invite.status)
+    ).length;
+
+    $('families').textContent = totalInvitations;
+    $('quota').textContent = totalQuota;
+    $('confirmed').textContent = totalConfirmed;
+    $('pending').textContent = totalPending;
+
     const body = $('rows');
     body.replaceChildren();
+
     for (const invite of sorted) {
       const tr = document.createElement('tr');
-      const cells = [invite.family, String(invite.quota),
-        invite.status === 'yes' ? 'Sí' : invite.status === 'no' ? 'No' : 'Pendiente',
-        String(invite.status === 'yes' ? invite.confirmedCount : 0)];
+
+      const cells = [
+        invite.family || 'Sin nombre',
+        String(invite.quota ?? 0),
+        getStatusLabel(invite.status),
+        String(getConfirmedCount(invite))
+      ];
+
       for (const value of cells) {
-        const td = document.createElement('td'); td.textContent = value; tr.appendChild(td);
+        const td = document.createElement('td');
+        td.textContent = value;
+        tr.appendChild(td);
       }
+
       const td = document.createElement('td');
       const button = document.createElement('button');
-      button.className = 'secondary'; button.textContent = 'Copiar enlace';
+
+      button.className = 'secondary';
+      button.textContent = 'Copiar enlace';
+
       button.addEventListener('click', async () => {
-        try { await navigator.clipboard.writeText(getLink(invite.id)); button.textContent = '¡Copiado!'; }
-        catch { window.prompt('Copia el enlace:', getLink(invite.id)); }
+        const link = getLink(invite.id);
+
+        try {
+          await navigator.clipboard.writeText(link);
+          button.textContent = '¡Copiado!';
+
+          setTimeout(() => {
+            button.textContent = 'Copiar enlace';
+          }, 2000);
+
+        } catch (error) {
+          window.prompt('Copia el enlace:', link);
+        }
       });
-      td.appendChild(button); tr.appendChild(td); body.appendChild(tr);
+
+      td.appendChild(button);
+      tr.appendChild(td);
+      body.appendChild(tr);
     }
+
+    setStatus(
+      'Lista actualizada: ' +
+      totalInvitations + ' invitaciones, ' +
+      totalQuota + ' pases asignados, ' +
+      totalConfirmed + ' personas confirmadas y ' +
+      totalPending + ' invitaciones pendientes.'
+    );
   }
 
+  // Verificar permisos del administrador.
   async function checkAdmin(user) {
-    if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+    if (unsubscribe) {
+      unsubscribe();
+      unsubscribe = null;
+    }
+
     isAdmin = false;
+
     $('adminPanel').classList.add('hidden');
     $('loginPanel').classList.remove('hidden');
+
     if (!user || user.isAnonymous) {
-      $('loginStatus').textContent = 'Inicia sesión con Google para continuar.';
+      $('loginStatus').textContent =
+        'Inicia sesión con Google para continuar.';
       return;
     }
+
     try {
-      const doc = await db.collection('admins').doc(user.uid).get();
+      const doc = await db.collection('admins')
+        .doc(user.uid)
+        .get();
+
       if (!doc.exists || doc.data().enabled !== true) {
-        $('loginStatus').textContent = 'Esta cuenta no tiene permisos de administrador. UID: ' + user.uid;
+        $('loginStatus').textContent =
+          'Esta cuenta no tiene permisos de administrador. UID: ' +
+          user.uid;
         return;
       }
+
       isAdmin = true;
+
       $('loginPanel').classList.add('hidden');
       $('adminPanel').classList.remove('hidden');
-      unsubscribe = db.collection('invitaciones').onSnapshot(snapshot => {
-        invites = snapshot.docs.map(d => ({id:d.id, ...d.data()}));
-        render();
-      }, error => setStatus('Error al leer invitaciones: ' + error.message));
+
+      unsubscribe = db.collection('invitaciones')
+        .onSnapshot(snapshot => {
+          invites = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+
+          render();
+
+        }, error => {
+          setStatus(
+            'Error al leer invitaciones: ' + error.message
+          );
+        });
+
     } catch (error) {
-      $('loginStatus').textContent = 'No se pudo verificar el acceso: ' + error.message;
+      $('loginStatus').textContent =
+        'No se pudo verificar el acceso: ' +
+        error.message;
     }
   }
 
+  // Iniciar sesión.
   $('login').addEventListener('click', async () => {
-    try { await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
-    catch (error) { $('loginStatus').textContent = 'Error: ' + error.message; }
-  });
-  $('logout').addEventListener('click', () => auth.signOut());
-
-  $('file').addEventListener('change', async event => {
-    pendingImport = [];
-    $('import').disabled = true;
-    const file = event.target.files?.[0];
-    if (!file) return;
     try {
-      const parsed = JSON.parse(await file.text());
-      if (!Array.isArray(parsed) || parsed.length !== 24 || parsed.reduce((sum,x) => sum + x.quota, 0) !== 49) throw new Error('El archivo debe contener exactamente 24 invitaciones y 49 pases.');
-      const ids = new Set();
-      for (const x of parsed) {
-        if (typeof (x.family ?? x.name) !== 'string' || !(x.family ?? x.name).trim() ||
-            !/^[A-Za-z0-9_-]{20,64}$/.test(x.token) ||
-            !Number.isInteger(x.quota) || x.quota < 1 || x.quota > 20 || ids.has(x.token)) {
-          throw new Error('El archivo contiene un invitado, pase o token inválido.');
-        }
-        ids.add(x.token);
-      }
-      pendingImport = parsed;
-      $('import').disabled = !isAdmin;
-      setStatus('Archivo validado: 24 invitaciones, ' + parsed.reduce((sum,x) => sum + x.quota, 0) + ' pases.');
-    } catch (error) { setStatus('No se pudo leer la lista: ' + error.message); }
-  });
+      await auth.signInWithPopup(
+        new firebase.auth.GoogleAuthProvider()
+      );
 
-  $('import').addEventListener('click', async () => {
-    if (!isAdmin || pendingImport.length !== 24) return;
-    if (invites.some(x => x.status !== 'pending' || Number(x.confirmedCount || 0) !== 0)) {
-      setStatus('Actualización bloqueada: hay respuestas registradas. No se ha modificado nada.');
-      return;
-    }
-    if (pendingImport.reduce((s,x) => s + x.quota, 0) !== 49) {
-      setStatus('La lista no suma 49 pases.'); return;
-    }
-    if (!confirm('¿Ya descargaste el CSV como copia de seguridad? Esta acción REEMPLAZARÁ las invitaciones anteriores por 24 enlaces NUEVOS (49 pases). Los enlaces anteriores dejarán de funcionar.')) return;
-    if (!confirm('Última confirmación: ¿reemplazar TODAS las invitaciones actuales? Esta operación no puede deshacerse desde el panel.')) return;
-    $('import').disabled = true;
-    try {
-      // Firestore batch commits all deletes and creates atomically.
-      // Confirm the current server state, not only the last UI snapshot.
-      const current = await db.collection('invitaciones').get({source:'server'});
-      if (current.docs.some(d => d.data().status !== 'pending' || Number(d.data().confirmedCount || 0) !== 0)) {
-        throw new Error('Hay una respuesta registrada; no se realizó la actualización.');
-      }
-      const batch = db.batch();
-      current.docs.forEach(d => batch.delete(d.ref));
-      pendingImport.forEach(item => {
-        const ref = db.collection('invitaciones').doc(item.token);
-        batch.set(ref, {
-          family: (item.family ?? item.name).trim(), quota: item.quota,
-          status: 'pending', confirmedCount: 0,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-      });
-      await batch.commit();
-      pendingImport = [];
-      $('file').value = '';
-      setStatus('Actualización completada. Deben aparecer 24 invitaciones y 49 pases. Descarga ahora el NUEVO CSV.');
     } catch (error) {
-      setStatus('No se completó la actualización: ' + error.message);
-    } finally { $('import').disabled = !isAdmin || !pendingImport.length; }
+      $('loginStatus').textContent =
+        'Error: ' + error.message;
+    }
   });
 
+  // Cerrar sesión.
+  $('logout').addEventListener('click', () => {
+    auth.signOut();
+  });
+
+  // Descargar copia CSV sin modificar Firebase.
   $('export').addEventListener('click', () => {
     if (!isAdmin) return;
-    const lines = [['Familia','Pases','Enlace','Respuesta','Asistentes'].map(csvCell).join(',')];
-    for (const x of invites) {
-      lines.push([x.family,x.quota,getLink(x.id),x.status || 'pending',x.confirmedCount || 0].map(csvCell).join(','));
+
+    const lines = [
+      [
+        'Familia',
+        'Pases',
+        'Enlace',
+        'Respuesta',
+        'Asistentes'
+      ].map(csvCell).join(',')
+    ];
+
+    for (const invite of invites) {
+      lines.push([
+        invite.family,
+        invite.quota,
+        getLink(invite.id),
+        getStatusLabel(invite.status),
+        getConfirmedCount(invite)
+      ].map(csvCell).join(','));
     }
-    const url = URL.createObjectURL(new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'}));
-    const a = document.createElement('a'); a.href = url; a.download = 'enlaces_boda_gerson_anayeli.csv'; a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+    const csv = '\ufeff' + lines.join('\r\n');
+
+    const url = URL.createObjectURL(
+      new Blob([csv], {
+        type: 'text/csv;charset=utf-8'
+      })
+    );
+
+    const a = document.createElement('a');
+
+    a.href = url;
+    a.download = 'enlaces_boda_gerson_anayeli.csv';
+
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 1000);
   });
 
+  // Inicialización de Firebase.
   if (!window.FIREBASE_CONFIG || !window.firebase) {
-    $('loginStatus').textContent = 'No se encontró Firebase. Revisa ./firebase-config.js.';
+    $('loginStatus').textContent =
+      'No se encontró Firebase. Revisa firebase-config.js.';
+
     $('login').disabled = true;
     return;
   }
-  if (!firebase.apps.length) firebase.initializeApp(window.FIREBASE_CONFIG);
-  db = firebase.firestore(); auth = firebase.auth();
-  auth.onAuthStateChanged(checkAdmin, error => { $('loginStatus').textContent = error.message; });
+
+  if (!firebase.apps.length) {
+    firebase.initializeApp(window.FIREBASE_CONFIG);
+  }
+
+  db = firebase.firestore();
+  auth = firebase.auth();
+
+  auth.onAuthStateChanged(
+    checkAdmin,
+    error => {
+      $('loginStatus').textContent = error.message;
+    }
+  );
+
 })();
 </script>
 </body>

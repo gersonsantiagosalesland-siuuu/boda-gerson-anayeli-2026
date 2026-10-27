@@ -198,7 +198,11 @@ $('rsvpFamilyName').textContent = invite.family;
         if (!snap.exists) throw new Error('No se encontro la invitacion.');
         const quota = snap.data().quota;
         if (confirmedCount > quota) throw new Error('La cantidad supera los pases disponibles.');
-        tx.update(state.ref, {status: attendance === 'si' ? 'confirmed' : 'declined', confirmedCount, updatedAt: serverTimestamp});
+        tx.update(state.ref, {
+  status: attendance === 'si' ? 'yes' : 'no',
+  confirmedCount,
+  updatedAt: serverTimestamp
+});
       });
       closeModal();
       showToast(attendance === 'si'

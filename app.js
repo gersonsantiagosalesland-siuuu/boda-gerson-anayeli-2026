@@ -5,7 +5,7 @@
  */
 'use strict';
 
-const WEDDING_UNLOCK_UTC = Date.UTC(2026, 10, 22, 5, 0, 0);
+const WEDDING_UNLOCK_UTC = Date.UTC(2026, 10, 12, 5, 0, 0);
 const SDK_VERSION = '11.10.0';
 const STORAGE_RESERVATIONS = 'ga_gifts_demo_reservations_v1';
 const STORAGE_CATALOG = 'ga_gifts_demo_catalog_v1';
@@ -512,7 +512,7 @@ function renderAdmin() {
         <strong>🔒 Modo sorpresa activo.</strong>
         Verán qué regalos están reservados, pero no los nombres.
         ${state.mode === 'firebase'
-          ? 'El desbloqueo manual estará disponible desde el 22 de noviembre de 2026 (hora de Perú).'
+          ? 'El desbloqueo manual estará disponible desde el 12 de noviembre de 2026 (hora de Perú).'
           : 'En esta demostración pueden simular la revelación.'}
       </div>
     `;

@@ -6,7 +6,27 @@
 (() => {
   'use strict';
 
-  const DEADLINE_UTC = Date.parse('2026-11-15T05:00:00Z'); // 14/11/2026 23:59:59 en Peru.
+  // Fecha de respaldo para invitaciones antiguas que no tengan deadlineAt.
+  // Corresponde al 14/11/2026 a las 23:59:59 en Peru.
+  const DEADLINE_UTC = Date.parse('2026-11-15T05:00:00Z');
+
+  // Las invitaciones nuevas pueden tener una fecha limite propia en Firestore.
+  // deadlineAt debe guardarse como tipo Timestamp.
+  function getDeadlineMs(invite) {
+    const value = invite && invite.deadlineAt;
+    return value && typeof value.toMillis === 'function'
+      ? value.toMillis()
+      : DEADLINE_UTC;
+  }
+
+  function formatDeadline(deadlineMs) {
+    return new Intl.DateTimeFormat('es-PE', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      timeZone: 'America/Lima'
+    }).format(new Date(deadlineMs));
+  }
   const $ = id => document.getElementById(id);
   const token = new URLSearchParams(window.location.search).get('i') || '';
   const state = {db:null, ref:null, invite:null, saving:false};
@@ -60,7 +80,9 @@
     const quota = invite.quota;
     const answer = invite.status || 'pending';
     const count = Number(invite.confirmedCount || 0);
-    const closed = Date.now() >= DEADLINE_UTC;
+    const deadlineMs = getDeadlineMs(invite);
+    const deadlineText = formatDeadline(deadlineMs);
+    const closed = Date.now() >= deadlineMs;
 
     $('guestGreeting').textContent = 'Con mucho cariño, hemos reservado ' +
       (quota === 1 ? 'un pase' : quota + ' pases') + ' para ' + invite.family + '.';
@@ -77,8 +99,8 @@ $('rsvpFamilyName').textContent = invite.family;
   (answer === 'pending' ? '♡ Confirmar asistencia' : '♡ Modificar mi respuesta');
 
     setHint(closed
-      ? 'La fecha limite de confirmacion fue el 14 de noviembre de 2026.'
-      : 'Puedes confirmar hasta ' + quota + ' personas y modificar tu respuesta hasta el 14 de noviembre de 2026.');
+      ? 'La fecha limite de confirmacion fue el ' + deadlineText + '.'
+      : 'Puedes confirmar hasta ' + quota + ' personas y modificar tu respuesta hasta el ' + deadlineText + '.');
 
     $('attendance').value = answer === 'no' ? 'no' : 'si';
     updateCountOptions(quota, count);
@@ -156,7 +178,7 @@ $('rsvpFamilyName').textContent = invite.family;
   }
 
   $('rsvpBtn').addEventListener('click', () => {
-    if (!state.invite || Date.now() >= DEADLINE_UTC) return;
+    if (!state.invite || Date.now() >= getDeadlineMs(state.invite)) return;
     renderInvite();
     $('rsvpError').hidden = true;
     $('rsvpFeedback').hidden = true;
@@ -178,7 +200,7 @@ $('rsvpFamilyName').textContent = invite.family;
   $('rsvpForm').addEventListener('submit', async event => {
     event.preventDefault();
     if (state.saving || !state.invite || !state.ref) return;
-    if (Date.now() >= DEADLINE_UTC) return setError('El plazo de confirmacion ha finalizado.');
+    if (Date.now() >= getDeadlineMs(state.invite)) return setError('El plazo de confirmacion ha finalizado.');
 
     const attendance = $('attendance').value;
     const confirmedCount = attendance === 'no' ? 0 : Number($('guestCount').value);
@@ -196,7 +218,10 @@ $('rsvpFamilyName').textContent = invite.family;
       await state.db.runTransaction(async tx => {
         const snap = await tx.get(state.ref);
         if (!snap.exists) throw new Error('No se encontro la invitacion.');
-        const quota = snap.data().quota;
+        const currentInvite = snap.data();
+        const currentDeadline = getDeadlineMs(currentInvite);
+        if (Date.now() >= currentDeadline) throw new Error('El plazo de confirmacion ha finalizado.');
+        const quota = currentInvite.quota;
         if (confirmedCount > quota) throw new Error('La cantidad supera los pases disponibles.');
         tx.update(state.ref, {
   status: attendance === 'si' ? 'yes' : 'no',

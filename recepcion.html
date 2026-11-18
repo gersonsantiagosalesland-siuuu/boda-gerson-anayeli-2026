@@ -258,7 +258,7 @@ async function toggleMember(index){
       const willIn=!members[index].checkedIn;
       if(willIn && arrived>=confirmed)throw new Error('Ya se alcanzó la cantidad de personas confirmadas ('+confirmed+').');
       members[index].checkedIn=willIn;
-      members[index].checkedInAt=willIn?firebase.firestore.FieldValue.serverTimestamp():null;
+      members[index].checkedInAt=willIn?firebase.firestore.Timestamp.now():null;
       members[index].checkedInBy=willIn?(auth.currentUser?.uid||''):null;
       tx.update(ref,{members,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
     });

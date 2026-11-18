@@ -73,6 +73,30 @@
     el.value = String(selected >= 1 && selected <= quota ? selected : 1);
   }
 
+  function renderQr(invite) {
+    const section = $('qrPaseSection');
+    const image = $('qrPaseImage');
+    const family = $('qrPaseFamily');
+    const count = $('qrPaseCount');
+    const error = $('qrPaseError');
+    if (!section || !image || !family || !count) return;
+
+    const qrUrl = new URL('qr-familias/' + encodeURIComponent(token) + '.svg', window.location.href).href;
+
+    section.hidden = false;
+    family.textContent = invite.family;
+    count.textContent = invite.quota + (invite.quota === 1 ? ' pase asignado' : ' pases asignados');
+    image.alt = 'Código QR de ingreso para ' + invite.family;
+    image.onload = () => {
+      if (error) error.hidden = true;
+    };
+    image.onerror = () => {
+      if (error) error.hidden = false;
+      image.removeAttribute('src');
+    };
+    image.src = qrUrl;
+  }
+
   function renderInvite() {
     const invite = state.invite;
     if (!invite) return;
@@ -105,6 +129,7 @@ $('rsvpFamilyName').textContent = invite.family;
     $('attendance').value = answer === 'no' ? 'no' : 'si';
     updateCountOptions(quota, count);
     $('countRow').hidden = $('attendance').value === 'no';
+    renderQr(invite);
   }
 
   function closeModal() {
@@ -129,6 +154,7 @@ $('rsvpFamilyName').textContent = invite.family;
     $('rsvpBtn').disabled = true;
 
     if (!/^[A-Za-z0-9_-]{20,80}$/.test(token)) {
+      if ($('qrPaseSection')) $('qrPaseSection').hidden = true;
       setSummary('Invitacion sin identificar',
         'Abre el enlace personalizado que recibiste de Gerson y Anayeli.');
       setHint('Cada familia o invitado tiene un enlace propio con sus pases.');
@@ -152,6 +178,7 @@ $('rsvpFamilyName').textContent = invite.family;
       state.ref.onSnapshot(snapshot => {
         if (!snapshot.exists) {
           state.invite = null;
+          if ($('qrPaseSection')) $('qrPaseSection').hidden = true;
           $('rsvpBtn').disabled = true;
           setSummary('No encontramos esta invitacion',
             'Revisa que el enlace este completo o consulta con los novios.');

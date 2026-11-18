@@ -112,7 +112,7 @@
       (quota === 1 ? 'un pase' : quota + ' pases') + ' para ' + invite.family + '.';
 
     let status = 'Aun no han confirmado su asistencia.';
-    if (answer === 'yes') status = 'Asistencia confirmada: ' + count + (count === 1 ? ' persona.' : ' personas.');
+    if (answer === 'yes' || answer === 'confirmed') status = 'Asistencia confirmada: ' + count + (count === 1 ? ' persona.' : ' personas.');
 if (answer === 'no') status = 'Nos indicaron que no podrán asistir.';
 
 setSummary(invite.family, quota + (quota === 1 ? ' pase asignado. ' : ' pases asignados. ') + status);

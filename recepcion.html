@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>Recepción · Gerson & Anayeli</title>
+<style>
+:root{--navy:#1a2c49;--slate:#455575;--gold:#b08a3c;--champagne:#d8ba78;--ivory:#fcfbf8;--cream:#f4f0e8;--green:#2f7a58;--red:#a33b3b}
+*{box-sizing:border-box}
+body{margin:0;background:#e8e9e9;color:var(--navy);font-family:DM Sans,Arial,sans-serif}
+.wrap{width:min(100%,720px);margin:0 auto;padding:18px 14px 40px}
+header{background:linear-gradient(135deg,#1d3253,#142642);color:white;border:1px solid #9e803e;padding:22px 20px;border-radius:16px;box-shadow:0 10px 30px #111b2b20}
+header h1{font-family:Georgia,serif;font-weight:400;font-size:30px;margin:0 0 5px}
+header p{margin:0;color:#e5d6b8;font-size:13px}
+.panel{background:white;border:1px solid #dfd4be;border-radius:16px;padding:18px;margin-top:16px;box-shadow:0 6px 22px #17243c0b}
+.hidden{display:none!important}
+button{border:1px solid var(--gold);background:var(--navy);color:white;border-radius:9px;padding:12px 15px;font-weight:700;cursor:pointer}
+button.secondary{background:white;color:var(--navy)}
+button.danger{background:white;color:var(--red);border-color:#e3aaaa}
+button:disabled{opacity:.5;cursor:not-allowed}
+.status{padding:11px 12px;border-radius:9px;background:var(--cream);font-size:13px;white-space:pre-wrap}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:14px}
+.stat{background:var(--cream);border:1px solid #e2d7c4;border-radius:10px;padding:11px;text-align:center}
+.stat strong{display:block;font-size:23px}.stat span{font-size:11px;color:#657080}
+#reader{width:100%;max-width:520px;margin:0 auto;border-radius:12px;overflow:hidden;background:#111}
+.scan-hint{text-align:center;color:#657080;font-size:12px;margin:9px 0 0}
+.result-head{text-align:center}
+.family{font-family:Georgia,serif;font-size:28px;margin:4px 0 7px}
+.badge{display:inline-block;padding:6px 10px;border-radius:999px;background:#edf5ef;color:var(--green);font-size:12px;font-weight:700}
+.badge.warn{background:#fff3df;color:#8a641f}
+.members{display:grid;gap:9px;margin-top:16px}
+.member{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid #e3dacb;border-radius:12px;padding:12px;background:#fffdf8}
+.member .name{font-weight:700}
+.member .time{display:block;color:#748095;font-size:10px;margin-top:3px}
+.member button{min-width:118px}
+.member.in .name{color:var(--green)}
+.member.in{border-color:#b8d7c4;background:#f4fbf6}
+.member.in button{background:var(--green);border-color:var(--green)}
+.member.out button{background:white;color:var(--navy)}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.filebox{border:1px dashed #cbb88d;border-radius:12px;padding:14px;background:#fffdf8}
+input[type=file]{width:100%;margin:8px 0}
+input[type=text]{width:100%;padding:12px;border:1px solid #d6c7aa;border-radius:9px}
+.manual{display:flex;gap:8px;margin-top:10px}
+.manual input{flex:1}
+.small{font-size:11px;color:#657080;line-height:1.5}
+.notice{border-left:4px solid var(--gold);padding:10px 12px;background:#fffaf0;font-size:12px;color:#5d5d5d}
+@media(max-width:520px){.stats{grid-template-columns:1fr 1fr}.member{align-items:flex-start;flex-direction:column}.member button{width:100%}.manual{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Gerson & Anayeli · Recepción</h1>
+  <p>Control de ingreso mediante QR · Panel privado</p>
+</header>
+
+<section class="panel" id="loginPanel">
+  <h2>Acceso de recepción</h2>
+  <p class="small">Inicia sesión con la misma cuenta Google autorizada como administradora.</p>
+  <button id="login">Acceder con Google</button>
+  <p id="loginStatus" class="status">Comprobando sesión…</p>
+</section>
+
+<section class="panel hidden" id="appPanel">
+  <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap">
+    <h2 style="margin:0">Control de ingreso</h2>
+    <button class="secondary" id="logout">Cerrar sesión</button>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><strong id="totalFamilies">0</strong><span>familias preparadas</span></div>
+    <div class="stat"><strong id="totalInvited">0</strong><span>pases confirmados</span></div>
+    <div class="stat"><strong id="totalArrived">0</strong><span>personas ingresaron</span></div>
+  </div>
+
+  <div class="panel" style="margin-top:16px">
+    <h3 style="margin-top:0">1. Escanear QR</h3>
+    <div id="reader"></div>
+    <p class="scan-hint">Apunta la cámara al QR que aparece dentro de la invitación.</p>
+    <div class="manual">
+      <input id="manualUrl" type="text" placeholder="O pega aquí el enlace de la invitación">
+      <button id="manualBtn">Buscar</button>
+    </div>
+    <p id="scanStatus" class="status" style="margin-top:10px">Listo para escanear.</p>
+  </div>
+
+  <div class="panel hidden" id="resultPanel">
+    <div class="result-head">
+      <div class="small">INVITACIÓN ENCONTRADA</div>
+      <div class="family" id="familyName">—</div>
+      <span class="badge" id="familyBadge">0 / 0 ingresaron</span>
+    </div>
+    <div id="resultNote" class="notice" style="margin-top:14px"></div>
+    <div class="members" id="members"></div>
+    <div class="actions">
+      <button class="secondary" id="scanAgain">Escanear otra familia</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3 style="margin-top:0">Preparación de recepción</h3>
+    <p class="small">Carga una sola vez el archivo privado <strong>invitados-recepcion.json</strong>. El sistema buscará cada familia en <strong>invitaciones</strong> y creará sus registros privados en <strong>recepcion</strong>. El archivo no se publica ni se guarda en GitHub.</p>
+    <div class="filebox">
+      <input type="file" id="seedFile" accept=".json,application/json">
+      <button id="seedBtn" disabled>Preparar datos de recepción</button>
+    </div>
+    <p id="seedStatus" class="status" style="margin-top:10px">Aún no se ha cargado la lista.</p>
+  </div>
+</section>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="./firebase-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script>
+(() => {
+'use strict';
+const $=id=>document.getElementById(id);
+let db,auth,isAdmin=false,scanner=null,currentToken='',seedData=null;
+
+function norm(s){
+  return String(s||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase()
+    .replace(/[()'’]/g,' ').replace(/[^a-z0-9]+/g,' ').trim().replace(/\\s+/g,' ');
+}
+function tokenFromText(text){
+  try{
+    const u=new URL(String(text).trim());
+    return u.searchParams.get('i')||'';
+  }catch{
+    const m=String(text).match(/[?&]i=([A-Za-z0-9_-]{20,80})/);
+    return m?m[1]:'';
+  }
+}
+function setScanStatus(t){$('scanStatus').textContent=t;}
+function setSeedStatus(t){$('seedStatus').textContent=t;}
+function setLoginStatus(t){$('loginStatus').textContent=t;}
+
+async function verifyAdmin(user){
+  isAdmin=false;
+  $('appPanel').classList.add('hidden');
+  $('loginPanel').classList.remove('hidden');
+  if(!user||user.isAnonymous){setLoginStatus('Inicia sesión con Google para continuar.');return;}
+  try{
+    const d=await db.collection('admins').doc(user.uid).get();
+    if(!d.exists||d.data().enabled!==true){
+      setLoginStatus('Esta cuenta no tiene permisos de administrador.');
+      return;
+    }
+    isAdmin=true;
+    $('loginPanel').classList.add('hidden');
+    $('appPanel').classList.remove('hidden');
+    await refreshStats();
+    startScanner();
+  }catch(e){setLoginStatus('No se pudo verificar el acceso: '+e.message);}
+}
+
+async function refreshStats(){
+  if(!isAdmin)return;
+  try{
+    const snap=await db.collection('recepcion').get();
+    let families=0,invited=0,arrived=0;
+    snap.forEach(d=>{
+      const x=d.data(); families++;
+      invited += Number(x.confirmedCount||0);
+      arrived += Array.isArray(x.members)?x.members.filter(m=>m.checkedIn===true).length:0;
+    });
+    $('totalFamilies').textContent=families;
+    $('totalInvited').textContent=invited;
+    $('totalArrived').textContent=arrived;
+  }catch(e){console.error(e);}
+}
+
+async function loadToken(token){
+  if(!isAdmin)return;
+  token=String(token||'').trim();
+  if(!/^[A-Za-z0-9_-]{20,80}$/.test(token)){
+    setScanStatus('QR no válido: no encontré un token de invitación.');
+    return;
+  }
+  currentToken=token;
+  try{
+    const inv=await db.collection('invitaciones').doc(token).get();
+    if(!inv.exists){setScanStatus('No encontramos esta invitación en Firebase.');return;}
+    const invite=inv.data();
+    const rec=await db.collection('recepcion').doc(token).get();
+    if(!rec.exists){
+      $('resultPanel').classList.remove('hidden');
+      $('familyName').textContent=invite.family||'Sin nombre';
+      $('familyBadge').textContent='Datos de recepción no preparados';
+      $('resultNote').textContent='Esta familia existe, pero todavía no se cargaron sus integrantes en la colección privada de recepción.';
+      $('members').replaceChildren();
+      setScanStatus('QR reconocido. Falta preparar los datos de esta familia.');
+      return;
+    }
+    const data=rec.data();
+    renderFamily(invite,data);
+    setScanStatus('QR reconocido correctamente.');
+  }catch(e){
+    console.error(e);setScanStatus('No se pudo consultar la invitación: '+e.message);
+  }
+}
+
+function renderFamily(invite,data){
+  $('resultPanel').classList.remove('hidden');
+  $('familyName').textContent=invite.family||data.family||'Sin nombre';
+  const confirmed=Number(invite.confirmedCount||data.confirmedCount||0);
+  const members=Array.isArray(data.members)?data.members:[];
+  const arrived=members.filter(m=>m.checkedIn===true).length;
+  $('familyBadge').textContent=arrived+' / '+confirmed+' ingresaron';
+  $('resultNote').textContent=confirmed===0
+    ? 'Esta invitación no tiene personas confirmadas. Verifica con los novios antes de permitir el ingreso.'
+    : (arrived>=confirmed
+      ? 'Todos los pases confirmados de esta invitación ya fueron registrados.'
+      : 'Marca a cada persona cuando ingrese. El sistema no permitirá superar la cantidad confirmada.');
+  const box=$('members');box.replaceChildren();
+  members.forEach((m,i)=>{
+    const row=document.createElement('div');row.className='member '+(m.checkedIn?'in':'out');
+    const left=document.createElement('div');
+    const name=document.createElement('div');name.className='name';name.textContent=m.name||('Pase '+(i+1));
+    left.appendChild(name);
+    if(m.checkedInAt){
+      const t=document.createElement('span');t.className='time';t.textContent='Ingreso registrado: '+formatDate(m.checkedInAt);left.appendChild(t);
+    }
+    const btn=document.createElement('button');
+    btn.className=m.checkedIn?'danger':'';
+    btn.textContent=m.checkedIn?'↩ Corregir':'✓ Marcar ingreso';
+    btn.addEventListener('click',()=>toggleMember(i));
+    row.appendChild(left);row.appendChild(btn);box.appendChild(row);
+  });
+}
+function formatDate(v){
+  try{
+    const d=v&&v.toDate?v.toDate():new Date(v);
+    return new Intl.DateTimeFormat('es-PE',{dateStyle:'short',timeStyle:'short'}).format(d);
+  }catch{return 'hora no disponible';}
+}
+async function toggleMember(index){
+  if(!currentToken||!isAdmin)return;
+  const ref=db.collection('recepcion').doc(currentToken);
+  try{
+    await db.runTransaction(async tx=>{
+      const [rSnap,iSnap]=await Promise.all([
+        tx.get(ref),
+        tx.get(db.collection('invitaciones').doc(currentToken))
+      ]);
+      if(!rSnap.exists||!iSnap.exists)throw new Error('No se encontró la información.');
+      const rec=rSnap.data(), invite=iSnap.data();
+      const members=Array.isArray(rec.members)?rec.members.map(x=>({...x})):[];
+      if(!members[index])throw new Error('Integrante no encontrado.');
+      const confirmed=Number(invite.confirmedCount||0);
+      const arrived=members.filter(m=>m.checkedIn===true).length;
+      const willIn=!members[index].checkedIn;
+      if(willIn && arrived>=confirmed)throw new Error('Ya se alcanzó la cantidad de personas confirmadas ('+confirmed+').');
+      members[index].checkedIn=willIn;
+      members[index].checkedInAt=willIn?firebase.firestore.FieldValue.serverTimestamp():null;
+      members[index].checkedInBy=willIn?(auth.currentUser?.uid||''):null;
+      tx.update(ref,{members,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
+    });
+    await loadToken(currentToken);
+    await refreshStats();
+  }catch(e){setScanStatus(e.message);}
+}
+
+function startScanner(){
+  if(scanner)return;
+  scanner=new Html5Qrcode('reader');
+  const config={fps:10,qrbox:{width:250,height:250},aspectRatio:1.0};
+  scanner.start({facingMode:'environment'},config,(decodedText)=>{
+    const token=tokenFromText(decodedText);
+    if(token){
+      scanner.pause(true);
+      loadToken(token);
+    }else{
+      setScanStatus('QR leído, pero no corresponde a una invitación de Gerson y Anayeli.');
+    }
+  },()=>{}).catch(async()=>{
+    setScanStatus('No se pudo abrir la cámara. Revisa el permiso del navegador o usa el campo para pegar el enlace.');
+  });
+}
+$('scanAgain').addEventListener('click',()=>{
+  $('resultPanel').classList.add('hidden');
+  currentToken='';
+  setScanStatus('Listo para escanear.');
+  try{scanner&&scanner.resume();}catch{}
+});
+$('manualBtn').addEventListener('click',()=>loadToken(tokenFromText($('manualUrl').value)));
+$('manualUrl').addEventListener('keydown',e=>{if(e.key==='Enter')$('manualBtn').click();});
+
+$('login').addEventListener('click',async()=>{
+  try{await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());}
+  catch(e){setLoginStatus('Error: '+e.message);}
+});
+$('logout').addEventListener('click',()=>auth.signOut());
+
+$('seedFile').addEventListener('change',async e=>{
+  seedData=null;$('seedBtn').disabled=true;
+  const file=e.target.files?.[0];if(!file)return;
+  try{
+    const parsed=JSON.parse(await file.text());
+    if(!parsed||!Array.isArray(parsed.families)||!parsed.families.length)throw new Error('JSON sin familias.');
+    for(const x of parsed.families){
+      if(typeof x.family!=='string'||!x.family.trim()||!Array.isArray(x.members)||!x.members.length)throw new Error('Hay una familia con datos incompletos.');
+      if(x.members.some(n=>typeof n!=='string'||!n.trim()))throw new Error('Hay un integrante con nombre inválido.');
+    }
+    seedData=parsed;$('seedBtn').disabled=!isAdmin;
+    setSeedStatus('Archivo válido: '+parsed.families.length+' grupos y '+parsed.families.reduce((s,x)=>s+x.members.length,0)+' integrantes.');
+  }catch(e){setSeedStatus('No se pudo leer el archivo: '+e.message);}
+});
+
+$('seedBtn').addEventListener('click',async()=>{
+  if(!isAdmin||!seedData)return;
+  if(!confirm('Esto preparará/actualizará los datos privados de recepción. No modifica las invitaciones ni los QR. ¿Continuar?'))return;
+  $('seedBtn').disabled=true;
+  try{
+    const invSnap=await db.collection('invitaciones').get();
+    const invites=invSnap.docs.map(d=>({id:d.id,...d.data()}));
+    const normalize=norm;
+    const aliases=new Map([
+      [normalize('Familia Oscar Machimoto'), normalize('Familia Machimoto Tio Oscar')],
+      [normalize('FamilIa Menendez Quispe'), normalize('Familia Menendez Quispe')]
+    ]);
+    let matched=0,unmatched=[];
+    let batch=db.batch();
+    let batchCount=0;
+    const commitBatch=async()=>{
+      if(batchCount===0)return;
+      await batch.commit();
+      batch=db.batch();
+      batchCount=0;
+    };
+    for(const item of seedData.families){
+      let target=invites.find(x=>normalize(x.family)===normalize(item.family));
+      if(!target){
+        const key=normalize(item.family);
+        const alias=aliases.get(key);
+        if(alias)target=invites.find(x=>normalize(x.family)===alias);
+      }
+      if(!target){
+        // Fallback: all significant words must occur in family label, ignoring generic "familia".
+        const words=normalize(item.family).split(' ').filter(w=>w.length>3&&w!=='familia');
+        target=invites.find(x=>words.every(w=>normalize(x.family).includes(w)));
+      }
+      if(!target){unmatched.push(item.family);continue;}
+      const ref=db.collection('recepcion').doc(target.id);
+      const members=item.members.map(name=>({name:name.trim(),checkedIn:false,checkedInAt:null,checkedInBy:null}));
+      batch.set(ref,{
+        family:target.family,
+        quota:Number(target.quota||members.length),
+        confirmedCount:Number(target.confirmedCount||0),
+        members,
+        updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+      },{merge:true});
+      matched++;
+      batchCount++;
+      if(batchCount>=8)await commitBatch();
+    }
+    await commitBatch();
+    await refreshStats();
+    if(unmatched.length){
+      setSeedStatus('Preparadas '+matched+' familias. NO encontradas: '+unmatched.join(' | ')+'.');
+    }else{
+      setSeedStatus('Preparación completada: '+matched+' familias.');
+    }
+  }catch(e){console.error(e);setSeedStatus('No se completó la preparación: '+e.message);}
+  finally{$('seedBtn').disabled=false;}
+});
+
+if(!window.firebase||!window.FIREBASE_CONFIG){
+  setLoginStatus('No se encontró Firebase. Revisa firebase-config.js.');
+  $('login').disabled=true;return;
+}
+if(!firebase.apps.length)firebase.initializeApp(window.FIREBASE_CONFIG);
+db=firebase.firestore();auth=firebase.auth();
+auth.onAuthStateChanged(verifyAdmin);
+})();
+</script>
+</body>
+</html>

@@ -65,6 +65,18 @@
     .guest-invite-status strong{display:block;font-family:'Cormorant Garamond',Georgia,serif;font-size:25px;font-weight:600;color:var(--navy);line-height:1.15;margin:6px 0}
     .guest-invite-status span{font-size:12px;color:#74664e}
     .rsvp-summary{padding:12px;border:1px solid #d6c7aa;background:#fffdf8;margin:10px 0 16px;text-align:center}
+    .qr-pass-card{border:1px solid #d4c096;background:linear-gradient(180deg,#fffdf8,#f8f3e8);padding:22px 16px 18px;margin:18px auto;max-width:330px;text-align:center;box-shadow:0 8px 24px #7c63270f}
+    .qr-pass-card[hidden]{display:none}
+    .qr-pass-kicker{font-size:10px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:var(--gold);margin:0 0 6px}
+    .qr-pass-title{font-family:'Cormorant Garamond',Georgia,serif;font-size:30px;font-weight:500;color:var(--navy);margin:0 0 4px}
+    .qr-pass-family{font-family:'Cormorant Garamond',Georgia,serif;font-size:22px;font-weight:600;color:var(--navy);margin:0 0 4px;line-height:1.15}
+    .qr-pass-count{font-size:11px;color:#74664e;margin:0 0 15px}
+    .qr-image-wrap{width:236px;height:236px;max-width:100%;margin:0 auto;padding:10px;background:#fff;border:1px solid #d8c8a8;display:grid;place-items:center}
+    .qr-image{width:100%;height:100%;display:block;image-rendering:pixelated}
+    .qr-pass-note{font-size:11px;color:#5f6a80;line-height:1.45;margin:13px auto 0;max-width:270px}
+    .qr-pass-code{font-size:9px;color:#8a7b60;word-break:break-all;margin:8px auto 0;max-width:280px;letter-spacing:.03em}
+    .qr-pass-error{font-size:11px;color:#a12e34;margin:12px 0 0}
+
     .rsvp-summary strong{font-family:'Cormorant Garamond',Georgia,serif;font-size:24px;display:block;color:var(--navy)}
     .rsvp-summary span{font-size:12px;color:#6b6470}
     .rsvp-feedback{margin:12px 0 0!important;font-size:12px!important;color:#1f6946!important}
@@ -280,6 +292,22 @@ body{background:#e8e9e9}
         </div>
         <p class="hint" id="rsvpSectionHint">Consultando la fecha límite de tu invitación…</p>
       </section>
+
+      <div class="section-rule"></div>
+      <section class="paper-section" aria-labelledby="qrPaseTitle" id="qrPaseSection" hidden>
+        <div class="qr-pass-card">
+          <p class="qr-pass-kicker">Tu pase de ingreso</p>
+          <h2 class="qr-pass-title" id="qrPaseTitle">Código QR</h2>
+          <p class="qr-pass-family" id="qrPaseFamily">Tu invitación</p>
+          <p class="qr-pass-count" id="qrPaseCount">Verificando pases…</p>
+          <div class="qr-image-wrap">
+            <img class="qr-image" id="qrPaseImage" alt="Código QR personalizado para ingresar a la boda" width="236" height="236" decoding="async">
+          </div>
+          <p class="qr-pass-note">Presenta este código en recepción el día de la boda. El código corresponde únicamente a esta invitación.</p>
+          <p class="qr-pass-error" id="qrPaseError" hidden>No se pudo cargar tu código QR. Conserva tu enlace personalizado y comunícate con los novios.</p>
+        </div>
+      </section>
+
       <div class="bottom-mark">Gerson &amp; Anayeli</div>
       <p class="sub">Con mucho cari&ntilde;o, los esperamos</p>
     </div>

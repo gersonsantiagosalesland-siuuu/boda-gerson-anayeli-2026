@@ -78,6 +78,9 @@ input[type=text]{width:100%;padding:12px;border:1px solid #d6c7aa;border-radius:
   <div class="panel" style="margin-top:16px">
     <h3 style="margin-top:0">1. Escanear QR</h3>
     <div id="reader"></div>
+    <button type="button" id="startCameraBtn">
+  📷 ACTIVAR CÁMARA
+</button>
     <p class="scan-hint">Apunta la cámara al QR que aparece dentro de la invitación.</p>
     <div class="manual">
       <input id="manualUrl" type="text" placeholder="O pega aquí el enlace de la invitación">
@@ -153,7 +156,7 @@ async function verifyAdmin(user){
     $('loginPanel').classList.add('hidden');
     $('appPanel').classList.remove('hidden');
     await refreshStats();
-    startScanner();
+    setScanStatus('Pulsa ACTIVAR CÁMARA para comenzar.');
   }catch(e){setLoginStatus('No se pudo verificar el acceso: '+e.message);}
 }
 
@@ -280,6 +283,9 @@ function startScanner(){
     setScanStatus('No se pudo abrir la cámara. Revisa el permiso del navegador o usa el campo para pegar el enlace.');
   });
 }
+  $('startCameraBtn').addEventListener('click',()=>{
+  startScanner();
+});
 $('scanAgain').addEventListener('click',()=>{
   $('resultPanel').classList.add('hidden');
   currentToken='';
